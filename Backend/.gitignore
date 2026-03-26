@@ -1,1 +1,44 @@
+# ------------------------
+# Python basics
+# ------------------------
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3
+
+# Virtual environment
+env/
 venv/
+.venv/
+
+# ------------------------
+# Environment variables
+# ------------------------
+.env
+
+# ------------------------
+# Alembic
+# ------------------------
+alembic/versions/__pycache__/
+
+# DO NOT ignore migrations themselves
+# (you WANT these in git)
+# alembic/versions/*.py  ← ❌ DO NOT add this
+
+# ------------------------
+# Logs
+# ------------------------
+*.log
+
+# ------------------------
+# OS junk
+# ------------------------
+.DS_Store
+Thumbs.db
+
+# ------------------------
+# IDE stuff
+# ------------------------
+.vscode/
+.idea/
