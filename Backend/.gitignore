@@ -41,3 +41,8 @@ Thumbs.db
 
 check_files.py
 /temp_uploads
+
+news_scrap.py
+inspector.py
+seed.py
+test_ai.py
