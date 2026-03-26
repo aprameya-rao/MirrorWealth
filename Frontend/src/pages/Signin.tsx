@@ -35,7 +35,7 @@ export default function SignIn() {
       formData.append('password', password)
 
       // 2. Hit your brand new FastAPI endpoint
-      const response = await fetch('http://localhost:8000/token', {
+      const response = await fetch('http://localhost:8000/api/v1/auth/token', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
@@ -53,9 +53,10 @@ export default function SignIn() {
       login(data.access_token)
       
       // 4. Redirect to the protected dashboard
-      navigate('/')
+      navigate('/dashboard')
       
     } catch (err) {
+      console.log(err)
       setError('Failed to sign in. Please check your credentials.')
     } finally {
       setLoading(false)
