@@ -77,3 +77,17 @@ class PortfolioPosition(Base):
         back_populates="positions"
     )
     asset: Mapped["Asset"] = relationship("app.models.portfolio.Asset")
+
+
+class PortfolioHistory(Base):
+    __tablename__ = "portfolio_history"
+    __table_args__ = {'extend_existing': True}
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    portfolio_id: Mapped[int] = mapped_column(ForeignKey("portfolios.id"))
+    
+    total_value: Mapped[float] = mapped_column(Float) # Cash + Market Value of Assets
+    cash_flow: Mapped[float] = mapped_column(Float, default=0.0) # Deposits (+) or Withdrawals (-)
+    snapshot_date: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    portfolio: Mapped["Portfolio"] = relationship("Portfolio")

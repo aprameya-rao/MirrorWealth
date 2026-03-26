@@ -8,7 +8,7 @@ from langchain_core.messages import HumanMessage
 from app.quant.mvo import get_optimal_weights
 from app.schemas.portfolio import PortfolioRequest, PortfolioResponse
 from app.models import User, Portfolio, PortfolioPosition
-
+from app.quant.execution import execute_trade_plan
 from app.agents.graph import app_graph
 from app.core.db import get_db
 from app.quant.rebalance import calculate_orders
@@ -151,3 +151,18 @@ async def get_portfolio_recommendation(
     except Exception as e:
         print(f"!!! CRITICAL API ERROR: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Internal Error: {str(e)}")
+    
+
+
+@router.post("/execute")
+async def confirm_trade_execution(
+    request: PortfolioRequest, # Using same schema for now
+    action_plan: dict,         # The JSON output from /recommend
+    db: AsyncSession = Depends(get_db)
+):
+    try:
+        success = await execute_trade_plan(db, request.user_id, action_plan)
+        return {"status": "success", "message": "Portfolio updated successfully"}
+    except Exception as e:
+        await db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))

@@ -79,10 +79,12 @@ async def run_async_migrations() -> None:
 
     # Create engine manually (bypass config parsing issues)
     connectable = create_async_engine(
-        db_url,
-        poolclass=pool.NullPool,
-        connect_args={"prepared_statement_cache_size": 0},
-    )
+    db_url,
+    poolclass=pool.NullPool,
+    connect_args={
+        "prepared_statement_cache_size": 0  # <--- Add this line
+    }
+)
 
     async with connectable.connect() as connection:
         await connection.run_sync(do_run_migrations)
