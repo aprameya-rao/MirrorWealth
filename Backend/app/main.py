@@ -1,29 +1,34 @@
 # app/main.py
-from dotenv import load_dotenv
-load_dotenv()
-
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.v1.endpoints import portfolio 
-from app.api.v1.endpoints import auth # 1. Import your new auth router
+from dotenv import load_dotenv
 
-app = FastAPI(title="MirrorWealth AI Backend")
+load_dotenv()
 
-# 2. CRITICAL: Add CORS middleware so React can talk to FastAPI
+from app.core.db import engine
+from app.models.base import Base # Import your declarative base
+from app.models import user      # Import models to ensure they are registered before create_all
+from app.api.v1.endpoints import auth
+
+# Async lifespan context to create tables on startup
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    async with engine.begin() as conn:
+        # Run the synchronous table creation inside this async wrapper
+        await conn.run_sync(Base.metadata.create_all)
+    yield
+
+app = FastAPI(title="MirrorWealth AI Backend", lifespan=lifespan)
+
+# Setup CORS so your React frontend can talk to FastAPI
 app.add_middleware(
     CORSMiddleware,
-    # Update these if your React app runs on a different port (e.g., 3000 or 5173)
-    allow_origins=["http://localhost:5173", "http://localhost:3000"], 
+    allow_origins=["http://localhost:3000"], # Your React dev server port
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# 3. Register the routes
-# Note: We mount auth without a prefix so it precisely matches your frontend's fetch to "/token"
-app.include_router(auth.router, tags=["Authentication"])
-app.include_router(portfolio.router, prefix="/api/v1/portfolio", tags=["Portfolio"])
-
-@app.get("/")
-def read_root():
-    return {"message": "MirrorWealth API is online"}
+# Register your authentication routes
+app.include_router(auth.router, prefix="/api/v1/auth", tags=["auth"])

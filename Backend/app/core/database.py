@@ -1,26 +1,28 @@
 # app/core/database.py
 import os
-from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from dotenv import load_dotenv
 
 load_dotenv()
 
 SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL")
 
-# The engine is the starting point for any SQLAlchemy application
-engine = create_engine(SQLALCHEMY_DATABASE_URL)
+# Create the ASYNC engine
+engine = create_async_engine(SQLALCHEMY_DATABASE_URL, echo=False)
 
-# Each instance of the SessionLocal class will be a database session
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+# Create an ASYNC session factory
+AsyncSessionLocal = async_sessionmaker(
+    bind=engine, 
+    class_=AsyncSession, 
+    expire_on_commit=False,
+    autocommit=False, 
+    autoflush=False
+)
 
-Base = declarative_base()
-
-# This is a 'Dependency' we will use in our routes
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+# Async Dependency to inject DB sessions into our routes
+async def get_db():
+    async with AsyncSessionLocal() as db:
+        try:
+            yield db
+        finally:
+            await db.close()

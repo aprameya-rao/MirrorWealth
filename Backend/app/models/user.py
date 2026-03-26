@@ -15,6 +15,7 @@ class User(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     email: Mapped[str] = mapped_column(String, unique=True, index=True)
+    hashed_password: Mapped[str] = mapped_column(String)
     full_name: Mapped[str] = mapped_column(String)
     
     # Mathematical output from your Psychometric Scoring Algorithm
