@@ -1,28 +1,16 @@
-# app/core/db.py
+# app/core/database.py
 import os
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
-from sqlalchemy import pool
 from dotenv import load_dotenv
-
-# Import the Base that your models are using
-from app.models.base import Base 
 
 load_dotenv()
 
 SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL")
 
-# The ultimate Supabase-compatible engine
-engine = create_async_engine(
-    SQLALCHEMY_DATABASE_URL, 
-    echo=False,
-    poolclass=pool.NullPool, # Critical for Supabase connection pooler
-    connect_args={
-        "prepared_statement_cache_size": 0, # Prevents prepared statement errors
-        "statement_cache_size": 0
-    } 
-)
+# Create the ASYNC engine
+engine = create_async_engine(SQLALCHEMY_DATABASE_URL, echo=False)
 
-# Modern SQLAlchemy 2.0 Async Session Maker
+# Create an ASYNC session factory
 AsyncSessionLocal = async_sessionmaker(
     bind=engine, 
     class_=AsyncSession, 
@@ -32,8 +20,6 @@ AsyncSessionLocal = async_sessionmaker(
 )
 
 # Async Dependency to inject DB sessions into our routes
-SessionLocal = AsyncSessionLocal
-
 async def get_db():
     async with AsyncSessionLocal() as db:
         try:

@@ -12,6 +12,7 @@ export default function App({ children }: AppProps) {
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const location = useLocation()
 
+  // Converted to lowercase to safely match the route
   // Converted to lowercase to match the React Router paths safely
   const noLayoutRoutes = ['/signin', '/signup', '/privacy', '/terms']
   const hideLayout = noLayoutRoutes.includes(location.pathname.toLowerCase())

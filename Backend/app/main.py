@@ -1,7 +1,23 @@
 # app/main.py
+from contextlib import asynccontextmanager
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
+
 load_dotenv()
 
+from app.core.db import engine
+from app.models.base import Base # Import your declarative base
+from app.models import user      # Import models to ensure they are registered before create_all
+from app.api.v1.endpoints import auth
+
+# Async lifespan context to create tables on startup
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    async with engine.begin() as conn:
+        # Run the synchronous table creation inside this async wrapper
+        await conn.run_sync(Base.metadata.create_all)
+    yield
 from fastapi import FastAPI
 from app.api.v1.endpoints import portfolio ,risk
 from fastapi_utils.tasks import repeat_every
@@ -14,8 +30,16 @@ from app.core.db import SessionLocal
 from app.models import Portfolio, PortfolioPosition, PortfolioHistory
 from app.utils.market_data import fetch_live_prices
 
-app = FastAPI(title="MirrorWealth AI Backend")
+app = FastAPI(title="MirrorWealth AI Backend", lifespan=lifespan)
 
+# Setup CORS so your React frontend can talk to FastAPI
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"], # Your React dev server port
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.on_event("startup")
 @repeat_every(seconds=60 * 60 * 24)  # Runs every 24 hours
@@ -75,6 +99,5 @@ async def record_daily_snapshots():
 app.include_router(portfolio.router, prefix="/api/v1/portfolio", tags=["Portfolio"])
 app.include_router(risk.router, prefix="/risk", tags=["Risk"])
 
-@app.get("/")
-def read_root():
-    return {"message": "MirrorWealth API is online"}
+# Register your authentication routes
+app.include_router(auth.router, prefix="/api/v1/auth", tags=["auth"])
