@@ -33,7 +33,7 @@ export default function BacktestingPage() {
               />
             </div>
           </div>
-          <button className="w-full bg-[#FF4500] hover:bg-[#FF6B35] text-white font-semibold py-3 rounded-lg transition-colors">
+          <button className="w-full bg-[#FF4500] hover:bg-[#FF6B35] text-white font-semibold py-4 px-8 rounded-3xl shadow-lg ">
             Run Backtest
           </button>
         </div>

@@ -37,6 +37,13 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
         />
       )}
 
+      {/* Desktop Overlay - Darkens background when sidebar expanded */}
+      {!isMobile && !collapsed && (
+        <div 
+          className="fixed inset-0 bg-black/20 z-30 md:block pointer-events-none"
+        />
+      )}
+
       {/* Sidebar */}
       <aside className={`fixed left-0 top-16 h-[calc(100vh-64px)] border-r border-[#222222] bg-black transition-all duration-300 z-40 ${
         collapsed ? 'w-20' : 'w-64'
