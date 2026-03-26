@@ -38,10 +38,14 @@ class Portfolio(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    
+    # ADDED: To track uninvested money the AI can deploy
+    cash_balance: Mapped[float] = mapped_column(Float, default=0.0) 
+    
     last_rebalanced_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     
     user: Mapped["User"] = relationship(back_populates="portfolio")
-    positions: Mapped[List["PortfolioPosition"]] = relationship(back_populates="portfolio")
+    positions: Mapped[List["PortfolioPosition"]] = relationship(back_populates="portfolio", cascade="all, delete-orphan")
 
 
 class PortfolioPosition(Base):
@@ -52,11 +56,12 @@ class PortfolioPosition(Base):
     portfolio_id: Mapped[int] = mapped_column(ForeignKey("portfolios.id"))
     asset_id: Mapped[int] = mapped_column(ForeignKey("assets.id"))
     
-    # MVO optimized ideal weight (e.g., 0.40)
-    target_weight: Mapped[float] = mapped_column(Float)
-    
-    # Actual market-drifted weight, updated daily (e.g., 0.46)
-    current_weight: Mapped[float] = mapped_column(Float) 
+    # ADDED: Actual ownership metrics
+    quantity: Mapped[float] = mapped_column(Float, default=0.0)
+    average_buy_price: Mapped[float] = mapped_column(Float, default=0.0)
+
+    target_weight: Mapped[float] = mapped_column(Float, default=0.0)
+    current_weight: Mapped[float] = mapped_column(Float, default=0.0) 
 
     portfolio: Mapped["Portfolio"] = relationship(back_populates="positions")
     asset: Mapped["Asset"] = relationship()
