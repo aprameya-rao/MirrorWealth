@@ -1,42 +1,58 @@
 import asyncio
-from logging.config import fileConfig
 import os
+from logging.config import fileConfig
+from pathlib import Path
+
 from dotenv import load_dotenv
 from sqlalchemy import pool
-from sqlalchemy.engine import Connection # <--- ADD THIS LINE
-from sqlalchemy.ext.asyncio import async_engine_from_config
-
-from sqlalchemy import pool
-from sqlalchemy.ext.asyncio import async_engine_from_config
+from sqlalchemy.engine import Connection
+from sqlalchemy.ext.asyncio import create_async_engine
 
 from alembic import context
 
-# --- 1. IMPORT YOUR MODELS ---
+# --------------------------------------------------
+# 1. LOAD ENV VARIABLES (DO THIS FIRST)
+# --------------------------------------------------
+env_path = Path(__file__).resolve().parent.parent / ".env"
+load_dotenv(dotenv_path=env_path)
+
+# Debug: confirm env is loaded
+print("Loaded .env from:", env_path)
+print("DB URL from env:", os.getenv("DATABASE_URL"))
+
+# --------------------------------------------------
+# 2. IMPORT MODELS (ENSURE METADATA IS POPULATED)
+# --------------------------------------------------
+import app.models
 from app.models import Base
 
-# --- 2. LOAD ENVIRONMENT VARIABLES ---
-load_dotenv()
+# Debug: confirm models are registered
+print("Detected tables:", Base.metadata.tables.keys())
 
-# this is the Alembic Config object, which provides
-# access to the values within the .ini file in use.
+# --------------------------------------------------
+# 3. ALEMBIC CONFIG
+# --------------------------------------------------
 config = context.config
 
-# --- 3. OVERRIDE URL WITH .ENV ---
-db_url = os.getenv("DATABASE_URL")
-if db_url:
-    config.set_main_option("sqlalchemy.url", db_url)
-
-# Interpret the config file for Python logging.
-# This line sets up loggers basically.
+# Set up logging
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# --- 4. SET TARGET METADATA ---
+# IMPORTANT:
+# DO NOT use config.set_main_option("sqlalchemy.url", ...)
+# because % in passwords breaks ConfigParser
+# We will bypass it and directly use the engine
+
 target_metadata = Base.metadata
 
+# --------------------------------------------------
+# 4. OFFLINE MODE (rarely used, but keep it)
+# --------------------------------------------------
 def run_migrations_offline() -> None:
-    """Run migrations in 'offline' mode."""
-    url = config.get_main_option("sqlalchemy.url")
+    url = os.getenv("DATABASE_URL")
+
+    print("Running OFFLINE migrations with URL:", url)
+
     context.configure(
         url=url,
         target_metadata=target_metadata,
@@ -47,6 +63,9 @@ def run_migrations_offline() -> None:
     with context.begin_transaction():
         context.run_migrations()
 
+# --------------------------------------------------
+# 5. ONLINE MODE (this is what you use)
+# --------------------------------------------------
 def do_run_migrations(connection: Connection) -> None:
     context.configure(connection=connection, target_metadata=target_metadata)
 
@@ -54,12 +73,13 @@ def do_run_migrations(connection: Connection) -> None:
         context.run_migrations()
 
 async def run_async_migrations() -> None:
-    """In this scenario we need to create an Engine
-    and associate a connection with the context.
-    """
-    connectable = async_engine_from_config(
-        config.get_section(config.config_ini_section, {}),
-        prefix="sqlalchemy.",
+    db_url = os.getenv("DATABASE_URL")
+
+    print("Running ONLINE migrations with URL:", db_url)
+
+    # Create engine manually (bypass config parsing issues)
+    connectable = create_async_engine(
+        db_url,
         poolclass=pool.NullPool,
     )
 
@@ -69,9 +89,11 @@ async def run_async_migrations() -> None:
     await connectable.dispose()
 
 def run_migrations_online() -> None:
-    """Run migrations in 'online' mode."""
     asyncio.run(run_async_migrations())
 
+# --------------------------------------------------
+# 6. ENTRYPOINT
+# --------------------------------------------------
 if context.is_offline_mode():
     run_migrations_offline()
 else:
