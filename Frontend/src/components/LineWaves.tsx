@@ -17,13 +17,37 @@ interface LineWavesProps {
   mouseInfluence?: number;
 }
 
-function hexToVec3(hex: string): [number, number, number] {
-  const h = hex.replace('#', '');
-  return [
-    parseInt(h.slice(0, 2), 16) / 255,
-    parseInt(h.slice(2, 4), 16) / 255,
-    parseInt(h.slice(4, 6), 16) / 255
-  ];
+function colorToVec3(color: string): [number, number, number] {
+  const trimmed = color.trim();
+
+  if (typeof window !== 'undefined' && document?.body) {
+    const probe = document.createElement('span');
+    probe.style.color = trimmed;
+    probe.style.display = 'none';
+    document.body.appendChild(probe);
+    const resolved = getComputedStyle(probe).color;
+    document.body.removeChild(probe);
+
+    const match = resolved.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+    if (match) {
+      return [
+        Number(match[1]) / 255,
+        Number(match[2]) / 255,
+        Number(match[3]) / 255
+      ];
+    }
+  }
+
+  if (trimmed.startsWith('#') && trimmed.length >= 7) {
+    const h = trimmed.replace('#', '');
+    return [
+      parseInt(h.slice(0, 2), 16) / 255,
+      parseInt(h.slice(2, 4), 16) / 255,
+      parseInt(h.slice(4, 6), 16) / 255
+    ];
+  }
+
+  return [1, 1, 1];
 }
 
 const vertexShader = `
@@ -154,9 +178,9 @@ export default function LineWaves({
   edgeFadeWidth = 0.0,
   colorCycleSpeed = 1.0,
   brightness = 0.2,
-  color1 = '#ffffff',
-  color2 = '#ffffff',
-  color3 = '#ffffff',
+  color1 = 'var(--color-accent)',
+  color2 = 'var(--color-accent-soft)',
+  color3 = 'var(--color-accent-mid)',
   enableMouseInteraction = true,
   mouseInfluence = 2.0
 }: LineWavesProps) {
@@ -211,9 +235,9 @@ export default function LineWaves({
         uEdgeFadeWidth: { value: edgeFadeWidth },
         uColorCycleSpeed: { value: colorCycleSpeed },
         uBrightness: { value: brightness },
-        uColor1: { value: hexToVec3(color1) },
-        uColor2: { value: hexToVec3(color2) },
-        uColor3: { value: hexToVec3(color3) },
+        uColor1: { value: colorToVec3(color1) },
+        uColor2: { value: colorToVec3(color2) },
+        uColor3: { value: colorToVec3(color3) },
         uMouse: { value: new Float32Array([0.5, 0.5]) },
         uMouseInfluence: { value: mouseInfluence },
         uEnableMouse: { value: enableMouseInteraction }

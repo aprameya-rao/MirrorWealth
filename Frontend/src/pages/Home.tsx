@@ -1,8 +1,9 @@
-import { ArrowRight, BarChart3, Shield, Zap, TrendingUp, Users, Lightbulb, Sparkles, ChevronRight, Rocket, Star, Circle, Brain, Globe, Award, Crown, Clock, Lock, PieChart, LineChart, Bot, DollarSign, Target, Gauge, Heart, Bell, Activity, Database } from 'lucide-react'
-import { useState, useEffect, useRef } from 'react'
+import { ArrowRight, BarChart3, Shield, Zap, TrendingUp, Users, ChevronRight, Rocket, Star, Circle, Brain, Award, Clock, Lock, PieChart, LineChart, Bot, DollarSign, Target, Gauge, Heart, Bell, Database } from 'lucide-react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import logo from './logo.png'
 import LineWaves from '../components/LineWaves'
+import mockData from '../data/mockData.json'
 
 
 export default function Home() {
@@ -10,8 +11,46 @@ export default function Home() {
   const [wordIndex, setWordIndex] = useState(0)
   const [isDeleting, setIsDeleting] = useState(false)
   const [hoveredCard, setHoveredCard] = useState<number | null>(null)
+  const [waveColors, setWaveColors] = useState({
+    color1: 'var(--color-accent)',
+    color2: 'var(--color-accent-soft)',
+    color3: 'var(--color-accent-mid)',
+  })
   
-  const words = ['PRECISION', 'INNOVATION', 'INTELLIGENCE', 'PERFORMANCE']
+  const {
+    words,
+    navLinks,
+    heroBadges,
+    features,
+    timeline,
+    stats,
+    ticker,
+    latencyBars,
+    latencyBarColors,
+    keyStats,
+    techFeatures,
+  } = mockData.home
+
+  const iconMap = {
+    Shield,
+    Users,
+    TrendingUp,
+    Zap,
+    Award,
+    BarChart3,
+    Brain,
+    Clock,
+    PieChart,
+    Bot,
+    Circle,
+    DollarSign,
+    Gauge,
+    Heart,
+    Database,
+    Lock,
+    Target,
+    LineChart,
+  }
   
   useEffect(() => {
   const currentWord = words[wordIndex % words.length]
@@ -42,190 +81,18 @@ export default function Home() {
   return () => clearTimeout(timer)
 }, [displayText, isDeleting, wordIndex])
 
+  useEffect(() => {
+    const styles = getComputedStyle(document.documentElement)
+    setWaveColors({
+      color1: styles.getPropertyValue('--color-accent').trim() || 'var(--color-accent)',
+      color2: styles.getPropertyValue('--color-accent-soft').trim() || 'var(--color-accent-soft)',
+      color3: styles.getPropertyValue('--color-accent-mid').trim() || 'var(--color-accent-mid)',
+    })
+  }, [])
+
   return (
-    <div className="min-h-screen bg-[#000000] text-white overflow-x-hidden">
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300..700&family=Space+Grotesk:wght@300..700&display=swap');
-        
-        * {
-          font-family: 'Space Grotesk', 'Inter', system-ui, -apple-system, sans-serif;
-        }
-        
-        .gradient-text {
-          background: linear-gradient(135deg, #FF4500 0%, #FF6B35 50%, #FF8C42 100%);
-          background-size: 200% auto;
-          -webkit-background-clip: text;
-          background-clip: text;
-          color: transparent;
-          animation: shimmer 3s linear infinite;
-        }
-        
-        @keyframes shimmer {
-          0% { background-position: 0% center; }
-          100% { background-position: 200% center; }
-        }
-        
-        .glass-card {
-          background: rgba(17, 17, 17, 0.8);
-          backdrop-filter: blur(12px);
-          border: 1px solid rgba(255, 69, 0, 0.25);
-          transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        
-        .glass-card:hover {
-          border-color: rgba(255, 69, 0, 0.6);
-          background: rgba(17, 17, 17, 0.9);
-          transform: translateY(-4px);
-          box-shadow: 0 20px 40px rgba(255, 69, 0, 0.15);
-        }
-        
-        .glass-button {
-          background: rgba(255, 69, 0, 0.2);
-          backdrop-filter: blur(12px);
-          border: 1px solid rgba(255, 69, 0, 0.4);
-          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        
-        .glass-button:hover {
-          background: rgba(255, 69, 0, 0.35);
-          border-color: rgba(255, 69, 0, 0.7);
-          transform: scale(1.05);
-          box-shadow: 0 0 25px rgba(255, 69, 0, 0.3);
-        }
-        
-        .glass-button-primary {
-          background: linear-gradient(135deg, #FF4500, #FF6B35);
-          backdrop-filter: blur(12px);
-          border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-        
-        .glass-button-primary:hover {
-          background: linear-gradient(135deg, #FF6B35, #FF4500);
-          transform: scale(1.05);
-          box-shadow: 0 0 35px rgba(255, 69, 0, 0.5);
-        }
-        
-        .pill-badge {
-          background: rgba(255, 69, 0, 0.2);
-          backdrop-filter: blur(8px);
-          border: 1px solid rgba(255, 69, 0, 0.35);
-          transition: all 0.3s ease;
-        }
-        
-        .pill-badge:hover {
-          border-color: rgba(255, 69, 0, 0.9);
-          transform: scale(1.05);
-          box-shadow: 0 0 20px rgba(255, 69, 0, 0.25);
-        }
-        
-        @keyframes float {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-10px); }
-        }
-        
-        .animate-float {
-          animation: float 6s ease-in-out infinite;
-        }
-        
-        @keyframes glow-pulse {
-          0%, 100% { text-shadow: 0 0 10px rgba(255, 69, 0, 0.5); }
-          50% { text-shadow: 0 0 25px rgba(255, 69, 0, 0.8); }
-        }
-        
-        .glow-text {
-          animation: glow-pulse 2s ease-in-out infinite;
-        }
-        
-        .typewriter-cursor {
-          display: inline-block;
-          width: 3px;
-          height: 1.2em;
-          background: linear-gradient(180deg, #FF4500, #FF6B35);
-          margin-left: 4px;
-          animation: blink 1s step-end infinite;
-          vertical-align: middle;
-        }
-        
-        @keyframes blink {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0; }
-        }
-        
-        @keyframes slideInUp {
-          from {
-            opacity: 0;
-            transform: translateY(30px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        
-        .animate-slide-up {
-          animation: slideInUp 0.6s ease-out forwards;
-        }
-
-        /* How it works - timeline line */
-        .step-connector {
-          position: absolute;
-          top: 28px;
-          left: calc(50% + 28px);
-          width: calc(100% - 56px);
-          height: 1px;
-          background: linear-gradient(90deg, rgba(255,69,0,0.6), rgba(255,69,0,0.1));
-        }
-
-        /* Stats counter animation */
-        @keyframes countUp {
-          from { opacity: 0; transform: translateY(10px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        .stat-value {
-          animation: countUp 0.8s ease-out forwards;
-        }
-
-        /* Scrolling ticker */
-        @keyframes ticker {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(-50%); }
-        }
-        .ticker-track {
-          animation: ticker 20s linear infinite;
-          display: flex;
-          width: max-content;
-        }
-        .ticker-track:hover {
-          animation-play-state: paused;
-        }
-
-        /* Horizontal scan line for tech section */
-        @keyframes scanline {
-          0% { transform: translateY(-100%); opacity: 0; }
-          10% { opacity: 1; }
-          90% { opacity: 1; }
-          100% { transform: translateY(500%); opacity: 0; }
-        }
-        .scan-line {
-          animation: scanline 4s linear infinite;
-        }
-
-        /* Orbit animation for CTA */
-        @keyframes orbit {
-          0% { transform: rotate(0deg) translateX(60px) rotate(0deg); }
-          100% { transform: rotate(360deg) translateX(60px) rotate(-360deg); }
-        }
-        .orbit-dot {
-          animation: orbit 8s linear infinite;
-        }
-        .orbit-dot-2 {
-          animation: orbit 12s linear infinite reverse;
-        }
-        .orbit-dot-3 {
-          animation: orbit 6s linear infinite;
-          animation-delay: -3s;
-        }
-      `}</style>
+    <div className="min-h-screen bg-[var(--color-background)] text-white overflow-x-hidden">
+      
 
       {/* Navigation - Glassmorphism */}
       <nav className="fixed top-0 w-full z-50 bg-black/50 backdrop-blur-xl border-b border-white/10">
@@ -240,14 +107,14 @@ export default function Home() {
           </div>
 
           <div className="hidden md:flex items-center gap-8">
-            {['Privacy', 'Terms', 'Pricing'].map((item) => (
+            {navLinks.map((item) => (
               <a
                 key={item}
                 href={`#${item.toLowerCase().replace(/\s/g, '-')}`}
                 className="text-sm text-gray-300 hover:text-white transition-all duration-300 relative group"
               >
                 {item}
-                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-[#FF4500] to-[#FF6B35] group-hover:w-full transition-all duration-300"></span>
+                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-[var(--color-accent)] to-[var(--color-accent-soft)] group-hover:w-full transition-all duration-300"></span>
               </a>
             ))}
           </div>
@@ -279,14 +146,11 @@ export default function Home() {
             edgeFadeWidth={0}
             colorCycleSpeed={1}
             brightness={0.35}
-            color1="#ff4500"
-            color2="#ff6b35"
-            color3="#ff8c42"
+            color1={waveColors.color1}
+            color2={waveColors.color2}
+            color3={waveColors.color3}
             enableMouseInteraction={true}
             mouseInfluence={2}
-            lineLength={2.5}
-            length={2.5}
-            lineLengthMultiplier={2.5}
           />
         </div>
         
@@ -328,17 +192,11 @@ export default function Home() {
             </div>
 
             <div className="pt-12 flex flex-wrap items-center justify-center gap-4">
-              {[
-                { icon: Shield, text: 'Bank-level Security' },
-                { icon: Users, text: '50,000+ Users' },
-                { icon: TrendingUp, text: 'Real-time Data' },
-                { icon: Zap, text: '99.9% Uptime' },
-                { icon: Award, text: 'Award Winning' }
-              ].map((badge, idx) => {
-                const Icon = badge.icon
+              {heroBadges.map((badge, idx) => {
+                const Icon = iconMap[badge.icon as keyof typeof iconMap]
                 return (
-                  <div key={idx} className="flex items-center gap-2 px-4 py-2 rounded-full glass-card hover:scale-105 transition-all duration-300 cursor-pointer group">
-                    <Icon className="h-3.5 w-3.5 text-[#FF4500] group-hover:rotate-12 transition-transform duration-300" />
+                  <div key={idx} className="flex items-center gap-2 px-4 py-2 rounded-full glass-card glass-card-hover hover:scale-105 transition-all duration-300 cursor-pointer group">
+                    <Icon className="h-3.5 w-3.5 text-[var(--color-accent)] group-hover:rotate-12 transition-transform duration-300" />
                     <span className="text-xs text-gray-200 font-medium">{badge.text}</span>
                   </div>
                 )
@@ -354,9 +212,9 @@ export default function Home() {
         <section id="features" className="py-20 px-6">
           <div className="mx-auto max-w-6xl">
             <div className="text-center mb-16">
-              <div className="inline-flex items-center gap-2 rounded-full bg-[#FF4500]/10 border border-[#FF4500]/20 px-4 py-1.5 mb-4">
-                <Star className="h-4 w-4 text-[#FF4500]" />
-                <span className="text-sm font-medium text-[#FF4500]">Premium Features</span>
+              <div className="inline-flex items-center gap-2 rounded-full bg-[var(--color-accent)]/10 border border-[var(--color-accent)]/20 px-4 py-1.5 mb-4">
+                <Star className="h-4 w-4 text-[var(--color-accent)]" />
+                <span className="text-sm font-medium text-[var(--color-accent)]">Premium Features</span>
               </div>
               <h3 className="text-4xl sm:text-5xl font-bold tracking-tight text-white mb-3">
                 Everything You Need to <span className="gradient-text">Succeed</span>
@@ -367,29 +225,22 @@ export default function Home() {
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {[
-                { icon: BarChart3, title: 'Real-time Portfolio Analytics', desc: 'Track your investments with live price updates, performance metrics, and interactive charts that update in real-time.' },
-                { icon: Brain, title: 'AI-Powered Market Intelligence', desc: 'Advanced machine learning algorithms analyze market trends and provide actionable insights for better decisions.' },
-                { icon: TrendingUp, title: 'Smart Portfolio Optimization', desc: 'Markowitz optimization with 5/25 rebalancing strategy to maximize returns while managing risk effectively.' },
-                { icon: Clock, title: 'Historical Backtesting Engine', desc: 'Test your investment strategies against 10+ years of historical market data before committing real capital.' },
-                { icon: PieChart, title: 'Dynamic Asset Allocation', desc: 'Automatically rebalance your portfolio based on market conditions, risk tolerance, and financial goals.' },
-                { icon: Bot, title: 'LangGraph Multi-Agent AI', desc: 'Sophisticated AI agents analyze news, sentiment, and fundamentals to provide comprehensive investment recommendations.' }
-              ].map((feature, idx) => {
-                const Icon = feature.icon
+              {features.map((feature, idx) => {
+                const Icon = iconMap[feature.icon as keyof typeof iconMap]
                 return (
                   <div 
                     key={idx} 
-                    className="bg-[#111111] border border-[#222222] rounded-2xl p-8 hover:border-[#FF4500]/40 transition-all duration-300 cursor-pointer hover:translate-y-[-4px] group"
+                    className="bg-[var(--color-card)] border border-[var(--color-border)] rounded-2xl p-8 hover:border-[var(--color-accent)]/40 transition-all duration-300 cursor-pointer hover:translate-y-[-4px] group"
                     onMouseEnter={() => setHoveredCard(idx)}
                     onMouseLeave={() => setHoveredCard(null)}
                   >
                     <div className="relative z-10">
-                      <div className="mb-4 inline-flex rounded-full bg-[#FF4500]/10 p-3 group-hover:bg-[#FF4500]/20 transition-all duration-300">
-                        <Icon className="h-5 w-5 text-[#FF4500]" />
+                      <div className="mb-4 inline-flex rounded-full bg-[var(--color-accent)]/10 p-3 group-hover:bg-[var(--color-accent)]/20 transition-all duration-300">
+                        <Icon className="h-5 w-5 text-[var(--color-accent)]" />
                       </div>
                       <h4 className="text-lg font-semibold text-white mb-2 tracking-tight">{feature.title}</h4>
                       <p className="text-gray-400 text-sm leading-relaxed">{feature.desc}</p>
-                      <div className={`mt-4 flex items-center gap-1 text-[#FF4500] text-sm transition-all duration-300 ${hoveredCard === idx ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-2'}`}>
+                      <div className={`mt-4 flex items-center gap-1 text-[var(--color-accent)] text-sm transition-all duration-300 ${hoveredCard === idx ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-2'}`}>
                         Learn more <ChevronRight className="h-3 w-3" />
                       </div>
                     </div>
@@ -401,12 +252,12 @@ export default function Home() {
         </section>
 
         {/* ── HOW IT WORKS – Numbered horizontal timeline ── */}
-        <section id="how-it-works" className="py-24 px-6 border-t border-[#111111] overflow-hidden">
+        <section id="how-it-works" className="py-24 px-6 border-t border-[var(--color-card)] overflow-hidden">
           <div className="mx-auto max-w-6xl">
             <div className="text-center mb-20">
-              <div className="inline-flex items-center gap-2 rounded-full bg-[#FF4500]/10 border border-[#FF4500]/20 px-4 py-1.5 mb-4">
-                <Circle className="h-4 w-4 text-[#FF4500]" />
-                <span className="text-sm font-medium text-[#FF4500]">Simple Process</span>
+              <div className="inline-flex items-center gap-2 rounded-full bg-[var(--color-accent)]/10 border border-[var(--color-accent)]/20 px-4 py-1.5 mb-4">
+                <Circle className="h-4 w-4 text-[var(--color-accent)]" />
+                <span className="text-sm font-medium text-[var(--color-accent)]">Simple Process</span>
               </div>
               <h3 className="text-4xl sm:text-5xl font-bold tracking-tight text-white mb-3">
                 How It <span className="gradient-text">Works</span>
@@ -420,43 +271,21 @@ export default function Home() {
             <div className="relative">
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-0 md:gap-0">
-                {[
-                  {
-                    step: '01',
-                    title: 'Connect Accounts',
-                    desc: 'Securely link your investment accounts, bank accounts, and financial data in one place.',
-                    icon: Shield,
-                    detail: 'OAuth 2.0 · 256-bit TLS · Zero-knowledge',
-                  },
-                  {
-                    step: '02',
-                    title: 'AI Risk Assessment',
-                    desc: 'Our AI analyzes your portfolio, risk tolerance, and financial goals to create a personalized strategy.',
-                    icon: Brain,
-                    detail: 'LangGraph agents · Real-time signals · NLP',
-                  },
-                  {
-                    step: '03',
-                    title: 'Optimize & Grow',
-                    desc: 'Get real-time recommendations, automated rebalancing, and watch your wealth grow.',
-                    icon: TrendingUp,
-                    detail: 'Markowitz model · 5/25 rule · Monte Carlo',
-                  },
-                ].map((item, idx) => {
-                  const Icon = item.icon
+                {timeline.map((item, idx) => {
+                  const Icon = iconMap[item.icon as keyof typeof iconMap]
                   return (
                     <div key={idx} className="relative flex flex-col items-center md:items-start px-6 pb-12 md:pb-0 group">
                       {/* Step number + icon row */}
                       <div className="flex items-center gap-3 mb-9">
-                        <div className="relative flex-shrink-0 w-12 h-14 rounded-full bg-gradient-to-br from-[#FF4500] to-[#FF8C42] flex items-center justify-center shadow-lg shadow-[#FF4500]/20 group-hover:scale-110 transition-transform duration-300">
+                        <div className="relative flex-shrink-0 w-12 h-14 rounded-full bg-gradient-to-br from-[var(--color-accent)] to-[var(--color-accent-mid)] flex items-center justify-center shadow-lg shadow-[var(--color-accent)]/20 group-hover:scale-110 transition-transform duration-300">
                           <span className="text-white font-bold text-lg">{item.step}</span>
                         </div>
                         
                       </div>
 
                       {/* Icon pill */}
-                      <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-[#1a1a1a] border border-[#2a2a2a] px-3 py-1.5 group-hover:border-[#FF4500]/30 transition-colors duration-300">
-                        <Icon className="h-3.5 w-3.5 text-[#FF4500]" />
+                      <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-[var(--color-surface-2)] border border-[var(--color-surface-4)] px-3 py-1.5 group-hover:border-[var(--color-accent)]/30 transition-colors duration-300">
+                        <Icon className="h-3.5 w-3.5 text-[var(--color-accent)]" />
                         <span className="text-xs text-gray-400 font-mono">{item.detail}</span>
                       </div>
 
@@ -464,7 +293,7 @@ export default function Home() {
                       <p className="text-gray-400 text-sm leading-relaxed">{item.desc}</p>
 
                       {/* Bottom accent bar */}
-                      <div className="mt-6 w-0 group-hover:w-full h-px bg-gradient-to-r from-[#FF4500] to-transparent transition-all duration-500" />
+                      <div className="mt-6 w-0 group-hover:w-full h-px bg-gradient-to-r from-[var(--color-accent)] to-transparent transition-all duration-500" />
                     </div>
                   )
                 })}
@@ -475,25 +304,20 @@ export default function Home() {
 
 
         {/* ── STATS – Large typographic layout with ticker ── */}
-        <section className="py-24 px-6 border-t border-[#111111] overflow-hidden">
+        <section className="py-24 px-6 border-t border-[var(--color-card)] overflow-hidden">
           <div className="mx-auto max-w-6xl">
 
             {/* Big numbers row */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-[#1a1a1a] rounded-2xl overflow-hidden mb-16">
-              {[
-                { value: '$2.5B+', label: 'Assets Under Management', trend: '+47% YoY', icon: DollarSign },
-                { value: '50K+', label: 'Active Investors', trend: '+128% Growth', icon: Users },
-                { value: '99.9%', label: 'Platform Uptime', trend: 'Enterprise Grade', icon: Gauge },
-                { value: '24/7', label: 'Expert Support', trend: 'Real-time', icon: Heart },
-              ].map((stat, idx) => {
-                const Icon = stat.icon
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-[var(--color-surface-2)] rounded-2xl overflow-hidden mb-16">
+              {stats.map((stat, idx) => {
+                const Icon = iconMap[stat.icon as keyof typeof iconMap]
                 return (
-                  <div key={idx} className="bg-[#0d0d0d] p-8 flex flex-col justify-between group hover:bg-[#111] transition-colors duration-300">
-                    <Icon className="h-5 w-5 text-[#FF4500]/50 mb-6 group-hover:text-[#FF4500] transition-colors duration-300" />
+                  <div key={idx} className="bg-[var(--color-surface-deep)] p-8 flex flex-col justify-between group hover:bg-[var(--color-card)] transition-colors duration-300">
+                    <Icon className="h-5 w-5 text-[var(--color-accent)]/50 mb-6 group-hover:text-[var(--color-accent)] transition-colors duration-300" />
                     <div>
                       <div className="text-4xl md:text-5xl font-bold text-white mb-1 stat-value tracking-tight">{stat.value}</div>
                       <div className="text-xs text-gray-500 mb-1">{stat.label}</div>
-                      <div className="text-xs text-[#FF4500] font-mono">{stat.trend}</div>
+                      <div className="text-xs text-[var(--color-accent)] font-mono">{stat.trend}</div>
                     </div>
                   </div>
                 )
@@ -501,22 +325,18 @@ export default function Home() {
             </div>
 
             {/* Scrolling ticker strip */}
-            <div className="relative overflow-hidden rounded-full border border-[#1f1f1f] bg-[#0a0a0a] py-2.5 px-2">
+            <div className="relative overflow-hidden rounded-full border border-[var(--color-surface-3)] bg-[var(--color-surface)] py-2.5 px-2">
               <div className="ticker-track">
                 {[...Array(2)].map((_, repeatIdx) => (
                   <div key={repeatIdx} className="flex items-center gap-0">
-                    {[
-                      'AAPL +2.4%', 'TSLA +1.8%', 'MSFT +0.9%', 'NVDA +4.2%',
-                      'AMZN +1.1%', 'GOOGL +0.7%', 'META +3.1%', 'BRK.B +0.5%',
-                      'SPY +0.8%', 'QQQ +1.6%', 'BTC +3.9%', 'ETH +2.7%',
-                    ].map((ticker, i) => (
+                    {ticker.map((ticker, i) => (
                       <span key={i} className="flex items-center gap-5 px-5">
                         <span className="text-xs font-mono whitespace-nowrap">
                           <span className="text-gray-300">{ticker.split(' ')[0]}</span>
                           {' '}
-                          <span style={{color: '#4ade80'}}>{ticker.split(' ')[1]}</span>
+                          <span style={{color: 'var(--color-green)'}}>{ticker.split(' ')[1]}</span>
                         </span>
-                        <span className="text-[#FF4500]/25 text-[10px]">◆</span>
+                        <span className="text-[var(--color-accent)]/25 text-[10px]">◆</span>
                       </span>
                     ))}
                   </div>
@@ -529,16 +349,16 @@ export default function Home() {
 
 
         {/* ── TECHNOLOGY – Clean 2-col: header+visual left, stacked features right ── */}
-        <section className="py-24 px-6 border-t border-[#111111]">
+        <section className="py-24 px-6 border-t border-[var(--color-card)]">
           <div className="mx-auto max-w-6xl">
             <div className="flex flex-col lg:flex-row gap-16">
 
               {/* LEFT — sticky header + visual panel */}
               <div className="lg:w-[38%] flex-shrink-0">
                 <div className="lg:sticky lg:top-28">
-                  <div className="inline-flex items-center gap-2 rounded-full bg-[#FF4500]/10 border border-[#FF4500]/20 px-4 py-1.5 mb-5">
-                    <Bell className="h-4 w-4 text-[#FF4500]" />
-                    <span className="text-sm font-medium text-[#FF4500]">Why Choose Us</span>
+                  <div className="inline-flex items-center gap-2 rounded-full bg-[var(--color-accent)]/10 border border-[var(--color-accent)]/20 px-4 py-1.5 mb-5">
+                    <Bell className="h-4 w-4 text-[var(--color-accent)]" />
+                    <span className="text-sm font-medium text-[var(--color-accent)]">Why Choose Us</span>
                   </div>
                   <h3 className="text-4xl font-bold text-white leading-tight mb-4">
                     Powered by<br />
@@ -551,25 +371,20 @@ export default function Home() {
 
                   {/* Visual: stacked metric tiles */}
                   <div className="space-y-2">
-                    <div className="bg-[#0d0d0d] border border-[#1a1a1a] rounded-2xl p-5 flex items-center justify-between">
+                    <div className="bg-[var(--color-surface-deep)] border border-[var(--color-surface-2)] rounded-2xl p-5 flex items-center justify-between">
                       <div>
                         <div className="text-[10px] font-mono text-gray-600 uppercase tracking-widest mb-1">Global latency</div>
                         <div className="text-3xl font-bold text-white">&lt;50<span className="text-lg font-normal text-gray-400 ml-1">ms</span></div>
                       </div>
                       <div className="w-16 h-8 flex items-end gap-0.5">
-                        {[3,5,4,7,6,8,7,9].map((h,i) => (
-                          <div key={i} className="flex-1 rounded-sm" style={{height:`${h*10}%`, background: i===7 ? '#FF4500' : `rgba(255,69,0,${0.1+i*0.07})`}} />
+                        {latencyBars.map((h, i) => (
+                          <div key={i} className="flex-1 rounded-sm" style={{height:`${h*10}%`, background: latencyBarColors[i] ?? 'var(--color-accent-10)'}} />
                         ))}
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-2">
-                      {[
-                        { label: 'Data feeds', val: '200+' },
-                        { label: 'Uptime SLA', val: '99.9%' },
-                        { label: 'Encryption', val: 'AES-256' },
-                        { label: 'Compliance', val: 'SOC 2' },
-                      ].map((s, i) => (
-                        <div key={i} className="bg-[#0d0d0d] border border-[#1a1a1a] rounded-xl px-4 py-3">
+                      {keyStats.map((s, i) => (
+                        <div key={i} className="bg-[var(--color-surface-deep)] border border-[var(--color-surface-2)] rounded-xl px-4 py-3">
                           <div className="text-base font-bold text-white">{s.val}</div>
                           <div className="text-[10px] text-gray-500 font-mono uppercase tracking-wide mt-0.5">{s.label}</div>
                         </div>
@@ -580,47 +395,22 @@ export default function Home() {
               </div>
 
               {/* RIGHT — stacked feature rows */}
-              <div className="flex-1 space-y-0 divide-y divide-[#111]">
-                {[
-                  {
-                    icon: Database,
-                    title: 'Real-time Data Streaming',
-                    desc: 'Connect to 200+ live market data feeds with sub-50ms latency. Every tick, every trade, instantly reflected in your portfolio.',
-                    tag: 'INFRASTRUCTURE',
-                  },
-                  {
-                    icon: Lock,
-                    title: 'Bank-Grade Security',
-                    desc: 'AES-256 encryption, biometric authentication, SOC 2 Type II certification, and zero-knowledge credential storage. Your data is yours.',
-                    tag: 'SECURITY',
-                  },
-                  {
-                    icon: Target,
-                    title: 'Goal-Based Planning',
-                    desc: 'Set retirement, education, or wealth targets. Our AI builds a personalized roadmap and adjusts it weekly as markets evolve.',
-                    tag: 'PLANNING',
-                  },
-                  {
-                    icon: LineChart,
-                    title: 'Advanced Analytics',
-                    desc: 'Sharpe ratio, Sortino ratio, Monte Carlo simulations across 1,000+ scenarios, and stress-testing against historical crashes.',
-                    tag: 'ANALYTICS',
-                  },
-                ].map((feature, idx) => {
-                  const Icon = feature.icon
+              <div className="flex-1 space-y-0 divide-y divide-[var(--color-card)]">
+                {techFeatures.map((feature, idx) => {
+                  const Icon = iconMap[feature.icon as keyof typeof iconMap]
                   return (
                     <div key={idx} className="group py-8 flex gap-5 cursor-pointer">
                       {/* Icon */}
-                      <div className="flex-shrink-0 mt-0.5 w-9 h-9 rounded-xl bg-[#111] border border-[#1f1f1f] flex items-center justify-center group-hover:bg-[#FF4500]/10 group-hover:border-[#FF4500]/20 transition-all duration-300">
-                        <Icon className="h-4 w-4 text-gray-500 group-hover:text-[#FF4500] transition-colors duration-300" />
+                      <div className="flex-shrink-0 mt-0.5 w-9 h-9 rounded-xl bg-[var(--color-card)] border border-[var(--color-surface-3)] flex items-center justify-center group-hover:bg-[var(--color-accent)]/10 group-hover:border-[var(--color-accent)]/20 transition-all duration-300">
+                        <Icon className="h-4 w-4 text-gray-500 group-hover:text-[var(--color-accent)] transition-colors duration-300" />
                       </div>
                       {/* Text */}
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
-                          <span className="text-[11px] font-mono text-[#FF4500]/89 tracking-[0.18em]">{feature.tag}</span>
-                          <div className="flex-1 h-px bg-[#1a1a1a] group-hover:bg-[#FF4500]/10 transition-colors duration-300" />
+                          <span className="text-[11px] font-mono text-[var(--color-accent)]/89 tracking-[0.18em]">{feature.tag}</span>
+                          <div className="flex-1 h-px bg-[var(--color-surface-2)] group-hover:bg-[var(--color-accent)]/10 transition-colors duration-300" />
                         </div>
-                        <h4 className="text-base font-semibold text-white mb-2 tracking-tight group-hover:text-[#FF6B35] transition-colors duration-300">{feature.title}</h4>
+                        <h4 className="text-base font-semibold text-white mb-2 tracking-tight group-hover:text-[var(--color-accent-soft)] transition-colors duration-300">{feature.title}</h4>
                         <p className="text-gray-500 text-sm leading-relaxed">{feature.desc}</p>
                       </div>
                     </div>
@@ -634,7 +424,7 @@ export default function Home() {
 
 
         {/* Footer */}
-        <footer className="border-t border-[#111111] py-12 px-6">
+        <footer className="border-t border-[var(--color-card)] py-12 px-6">
           <div className="mx-auto max-w-6xl">
             <div className="flex flex-col md:flex-row items-center justify-between gap-4">
               <div className="flex items-center gap-2 group cursor-pointer">
@@ -656,3 +446,6 @@ export default function Home() {
     </div>
   )
 }
+
+
+
