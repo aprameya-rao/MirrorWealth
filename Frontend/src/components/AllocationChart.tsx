@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import mockData from '../data/mockData.json'
 
 interface AllocationData {
   name: string
@@ -6,16 +7,11 @@ interface AllocationData {
   color: string
 }
 
-const allocationData: AllocationData[] = [
-  { name: 'Equity', value: 45, color: '#FF4500' },
-  { name: 'Debt', value: 30, color: '#FF6B35' },
-  { name: 'Gold', value: 15, color: '#FFB84D' },
-  { name: 'Crypto', value: 10, color: '#FFA500' },
-]
+const allocationData: AllocationData[] = mockData.shared.portfolioAllocation
 
 export default function AllocationChart() {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
-  const totalValue = 5842500
+  const totalValue = mockData.shared.totals.totalValue
 
   const generateDonutSegments = () => {
     let currentAngle = -90
@@ -75,7 +71,7 @@ export default function AllocationChart() {
               )
             })}
             {/* Center circle for donut effect */}
-            <circle cx="100" cy="100" r="40" fill="rgb(17, 17, 17)" />
+            <circle cx="100" cy="100" r="40" fill="var(--color-card)" />
           </svg>
 
           {/* Center text */}
@@ -119,3 +115,5 @@ export default function AllocationChart() {
     </div>
   )
 }
+
+

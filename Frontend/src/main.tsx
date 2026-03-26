@@ -5,6 +5,7 @@ import App from './App'
 import HomePage from './pages/Home'
 import DashboardPage from './pages/Dashboard'
 import SigninPage from './pages/Signin'
+import SignupPage from './pages/Signup'
 import PrivacyPage from './pages/Privacy'
 import TermsPage from './pages/Terms'
 import AllocationPage from './pages/Allocation'
@@ -22,6 +23,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         <Route path="/" element={<HomePage />} />
         <Route path="/dashboard" element={<App><DashboardPage /></App>} />
         <Route path="/signin" element={<App><SigninPage /></App>} />
+        <Route path="/signup" element={<App><SignupPage /></App>} />
         <Route path="/privacy" element={<App><PrivacyPage /></App>} />
         <Route path="/terms" element={<App><TermsPage /></App>} />
         <Route path="/allocation" element={<App><AllocationPage /></App>} />
@@ -35,3 +37,5 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     </Router>
   </React.StrictMode>,
 )
+
+

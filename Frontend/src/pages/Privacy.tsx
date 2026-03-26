@@ -1,21 +1,22 @@
-import { Shield, Lock, Eye, Database, Bell, ChevronRight, ArrowLeft, FileText, Users, Globe, Mail } from 'lucide-react'
+import { Shield, Lock, Eye, Database, Bell, ArrowLeft, Users, Globe, Mail, BarChart3, Brain } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import logo from './logo.png'
+import mockData from '../data/mockData.json'
 
-const sections = [
-  { id: 'collection', label: 'Data Collection' },
-  { id: 'usage', label: 'How We Use Data' },
-  { id: 'sharing', label: 'Data Sharing' },
-  { id: 'security', label: 'Security' },
-  { id: 'rights', label: 'Your Rights' },
-  { id: 'cookies', label: 'Cookies' },
-  { id: 'contact', label: 'Contact Us' },
-]
+const sections = mockData.privacy.sections
 
 export default function Privacy() {
   const [activeSection, setActiveSection] = useState('collection')
   const [scrolled, setScrolled] = useState(false)
+  const { usageCards, securityStats, contactEmail } = mockData.privacy
+
+  const usageIconMap = {
+    BarChart3,
+    Brain,
+    Bell,
+    Shield,
+  }
 
   useEffect(() => {
     const handleScroll = () => {
@@ -37,28 +38,8 @@ export default function Privacy() {
   }
 
   return (
-    <div className="min-h-screen bg-[#000000] text-white">
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&display=swap');
-        * { font-family: 'Space Grotesk', system-ui, sans-serif; }
-        .gradient-text {
-          background: linear-gradient(135deg, #FF4500 0%, #FF6B35 50%, #FF8C42 100%);
-          background-size: 200% auto;
-          -webkit-background-clip: text; background-clip: text; color: transparent;
-          animation: shimmer 3s linear infinite;
-        }
-        @keyframes shimmer { 0% { background-position: 0% center; } 100% { background-position: 200% center; } }
-        .section-fade { opacity: 0; transform: translateY(16px); animation: fadeUp 0.5s ease forwards; }
-        @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
-        .toc-item { transition: all 0.2s ease; }
-        .toc-item.active { color: #FF4500; }
-        .toc-item.active::before { content: ''; display: inline-block; width: 16px; height: 1px; background: #FF4500; margin-right: 8px; vertical-align: middle; }
-        .prose-section h3 { font-size: 1.25rem; font-weight: 700; color: white; margin-bottom: 0.75rem; margin-top: 2rem; }
-        .prose-section p { color: #9ca3af; font-size: 0.9rem; line-height: 1.8; margin-bottom: 1rem; }
-        .prose-section ul { list-style: none; padding: 0; margin-bottom: 1rem; }
-        .prose-section ul li { color: #9ca3af; font-size: 0.9rem; padding: 0.35rem 0 0.35rem 1.25rem; position: relative; }
-        .prose-section ul li::before { content: '—'; position: absolute; left: 0; color: #FF4500; font-size: 0.75rem; top: 0.4rem; }
-      `}</style>
+    <div className="min-h-screen bg-[var(--color-background)] text-white">
+      
 
       {/* Nav */}
       <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${scrolled ? 'bg-black/70 backdrop-blur-xl border-b border-white/10' : 'bg-transparent'}`}>
@@ -74,14 +55,14 @@ export default function Privacy() {
       </nav>
 
       {/* Hero banner */}
-      <div className="relative pt-32 pb-16 px-6 border-b border-[#111]">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#FF4500]/5 via-transparent to-transparent pointer-events-none" />
+      <div className="relative pt-32 pb-16 px-6 border-b border-[var(--color-card)]">
+        <div className="absolute inset-0 bg-gradient-to-br from-[var(--color-accent)]/5 via-transparent to-transparent pointer-events-none" />
         <div className="mx-auto max-w-6xl">
           <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 rounded-xl bg-[#FF4500]/10 flex items-center justify-center">
-              <Shield className="h-5 w-5 text-[#FF4500]" />
+            <div className="w-10 h-10 rounded-xl bg-[var(--color-accent)]/10 flex items-center justify-center">
+              <Shield className="h-5 w-5 text-[var(--color-accent)]" />
             </div>
-            <div className="text-xs font-mono text-[#FF4500]/60 tracking-[0.2em] uppercase">Legal Document</div>
+            <div className="text-xs font-mono text-[var(--color-accent)]/60 tracking-[0.2em] uppercase">Legal Document</div>
           </div>
           <h1 className="text-5xl sm:text-6xl font-bold text-white mb-4 tracking-tight">
             Privacy <span className="gradient-text">Policy</span>
@@ -119,8 +100,8 @@ export default function Privacy() {
             </nav>
 
             {/* Security badge */}
-            <div className="mt-10 p-4 rounded-xl bg-[#0d0d0d] border border-[#1a1a1a]">
-              <Lock className="h-4 w-4 text-[#FF4500] mb-2" />
+            <div className="mt-10 p-4 rounded-xl bg-[var(--color-surface-deep)] border border-[var(--color-surface-2)]">
+              <Lock className="h-4 w-4 text-[var(--color-accent)] mb-2" />
               <div className="text-xs text-white font-semibold mb-1">SOC 2 Certified</div>
               <div className="text-[11px] text-gray-500 leading-relaxed">Independently audited for security, availability & confidentiality.</div>
             </div>
@@ -131,8 +112,8 @@ export default function Privacy() {
         <main className="flex-1 min-w-0 prose-section space-y-12">
 
           <section id="collection" className="section-fade" style={{animationDelay: '0.1s'}}>
-            <div className="flex items-center gap-3 mb-6 pb-4 border-b border-[#1a1a1a]">
-              <Database className="h-5 w-5 text-[#FF4500]" />
+            <div className="flex items-center gap-3 mb-6 pb-4 border-b border-[var(--color-surface-2)]">
+              <Database className="h-5 w-5 text-[var(--color-accent)]" />
               <h2 className="text-2xl font-bold text-white m-0">Data Collection</h2>
             </div>
             <p>We collect information you provide directly, data generated by your use of the platform, and information from third-party financial data providers. This helps us deliver accurate, personalized portfolio insights.</p>
@@ -154,31 +135,31 @@ export default function Privacy() {
           </section>
 
           <section id="usage" className="section-fade" style={{animationDelay: '0.15s'}}>
-            <div className="flex items-center gap-3 mb-6 pb-4 border-b border-[#1a1a1a]">
-              <Eye className="h-5 w-5 text-[#FF4500]" />
+            <div className="flex items-center gap-3 mb-6 pb-4 border-b border-[var(--color-surface-2)]">
+              <Eye className="h-5 w-5 text-[var(--color-accent)]" />
               <h2 className="text-2xl font-bold text-white m-0">How We Use Your Data</h2>
             </div>
             <p>Your data powers the core MirrorWealth experience. We process it to deliver real-time analytics, AI-driven recommendations, and automated portfolio management.</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 my-6">
-              {[
-                { icon: '📊', title: 'Portfolio Analytics', desc: 'Real-time performance tracking and risk metrics' },
-                { icon: '🤖', title: 'AI Recommendations', desc: 'Personalized insights from our LangGraph agents' },
-                { icon: '🔔', title: 'Smart Alerts', desc: 'Threshold notifications and rebalancing triggers' },
-                { icon: '🛡️', title: 'Fraud Prevention', desc: 'Anomaly detection and account security' },
-              ].map((item, i) => (
-                <div key={i} className="bg-[#0d0d0d] border border-[#1a1a1a] rounded-xl p-4 hover:border-[#FF4500]/20 transition-colors">
-                  <div className="text-xl mb-2">{item.icon}</div>
-                  <div className="text-sm font-semibold text-white mb-1">{item.title}</div>
-                  <div className="text-xs text-gray-500">{item.desc}</div>
-                </div>
-              ))}
+              {usageCards.map((item, i) => {
+                const Icon = usageIconMap[item.icon as keyof typeof usageIconMap]
+                return (
+                  <div key={i} className="bg-[var(--color-surface-deep)] border border-[var(--color-surface-2)] rounded-xl p-4 hover:border-[var(--color-accent)]/20 transition-colors">
+                    <div className="mb-2 inline-flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-card)]">
+                      <Icon className="h-4 w-4 text-[var(--color-accent)]" />
+                    </div>
+                    <div className="text-sm font-semibold text-white mb-1">{item.title}</div>
+                    <div className="text-xs text-gray-500">{item.desc}</div>
+                  </div>
+                )
+              })}
             </div>
             <p>We never use your financial data for advertising profiling or sell it to third-party marketers. Your data is yours.</p>
           </section>
 
           <section id="sharing" className="section-fade" style={{animationDelay: '0.2s'}}>
-            <div className="flex items-center gap-3 mb-6 pb-4 border-b border-[#1a1a1a]">
-              <Users className="h-5 w-5 text-[#FF4500]" />
+            <div className="flex items-center gap-3 mb-6 pb-4 border-b border-[var(--color-surface-2)]">
+              <Users className="h-5 w-5 text-[var(--color-accent)]" />
               <h2 className="text-2xl font-bold text-white m-0">Data Sharing</h2>
             </div>
             <p>We do not sell personal data. We share limited data only with trusted service providers under strict contractual obligations, and only as necessary to operate the platform.</p>
@@ -194,18 +175,14 @@ export default function Privacy() {
           </section>
 
           <section id="security" className="section-fade" style={{animationDelay: '0.25s'}}>
-            <div className="flex items-center gap-3 mb-6 pb-4 border-b border-[#1a1a1a]">
-              <Lock className="h-5 w-5 text-[#FF4500]" />
+            <div className="flex items-center gap-3 mb-6 pb-4 border-b border-[var(--color-surface-2)]">
+              <Lock className="h-5 w-5 text-[var(--color-accent)]" />
               <h2 className="text-2xl font-bold text-white m-0">Security</h2>
             </div>
             <p>MirrorWealth is built on institutional-grade security infrastructure. We employ multiple layers of protection to safeguard your financial data.</p>
-            <div className="bg-[#0d0d0d] border border-[#FF4500]/15 rounded-2xl p-6 my-6">
+            <div className="bg-[var(--color-surface-deep)] border border-[var(--color-accent)]/15 rounded-2xl p-6 my-6">
               <div className="grid grid-cols-3 gap-4 text-center">
-                {[
-                  { val: 'AES-256', label: 'Encryption' },
-                  { val: 'TLS 1.3', label: 'Transport' },
-                  { val: 'SOC 2', label: 'Compliance' },
-                ].map((s, i) => (
+                {securityStats.map((s, i) => (
                   <div key={i}>
                     <div className="text-xl font-bold text-white mb-0.5">{s.val}</div>
                     <div className="text-xs text-gray-500 font-mono">{s.label}</div>
@@ -222,8 +199,8 @@ export default function Privacy() {
           </section>
 
           <section id="rights" className="section-fade" style={{animationDelay: '0.3s'}}>
-            <div className="flex items-center gap-3 mb-6 pb-4 border-b border-[#1a1a1a]">
-              <Globe className="h-5 w-5 text-[#FF4500]" />
+            <div className="flex items-center gap-3 mb-6 pb-4 border-b border-[var(--color-surface-2)]">
+              <Globe className="h-5 w-5 text-[var(--color-accent)]" />
               <h2 className="text-2xl font-bold text-white m-0">Your Rights</h2>
             </div>
             <p>Depending on your jurisdiction, you have rights over your personal data. We honor all applicable privacy regulations including GDPR and CCPA.</p>
@@ -234,12 +211,12 @@ export default function Privacy() {
               <li><strong className="text-white">Portability</strong> — Receive your data in a machine-readable format</li>
               <li><strong className="text-white">Opt-out</strong> — Withdraw consent for non-essential processing at any time</li>
             </ul>
-            <p>To exercise any right, email <span className="text-[#FF4500]">privacy@mirrorwealth.com</span> or use the data controls in your account settings. We respond within 30 days.</p>
+            <p>To exercise any right, email <span className="text-[var(--color-accent)]">{contactEmail}</span> or use the data controls in your account settings. We respond within 30 days.</p>
           </section>
 
           <section id="cookies" className="section-fade" style={{animationDelay: '0.35s'}}>
-            <div className="flex items-center gap-3 mb-6 pb-4 border-b border-[#1a1a1a]">
-              <Bell className="h-5 w-5 text-[#FF4500]" />
+            <div className="flex items-center gap-3 mb-6 pb-4 border-b border-[var(--color-surface-2)]">
+              <Bell className="h-5 w-5 text-[var(--color-accent)]" />
               <h2 className="text-2xl font-bold text-white m-0">Cookies & Tracking</h2>
             </div>
             <p>We use strictly necessary cookies to maintain sessions and preferences, and optional analytics cookies to improve the platform. We do not use advertising cookies.</p>
@@ -252,18 +229,18 @@ export default function Privacy() {
           </section>
 
           <section id="contact" className="section-fade" style={{animationDelay: '0.4s'}}>
-            <div className="flex items-center gap-3 mb-6 pb-4 border-b border-[#1a1a1a]">
-              <Mail className="h-5 w-5 text-[#FF4500]" />
+            <div className="flex items-center gap-3 mb-6 pb-4 border-b border-[var(--color-surface-2)]">
+              <Mail className="h-5 w-5 text-[var(--color-accent)]" />
               <h2 className="text-2xl font-bold text-white m-0">Contact Us</h2>
             </div>
             <p>Questions about this policy or your data? Reach our privacy team directly.</p>
-            <div className="bg-[#0d0d0d] border border-[#1a1a1a] rounded-2xl p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="bg-[var(--color-surface-deep)] border border-[var(--color-surface-2)] rounded-2xl p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
                 <div className="text-sm font-semibold text-white mb-1">Privacy Team</div>
-                <div className="text-sm text-[#FF4500]">privacy@mirrorwealth.com</div>
+                <div className="text-sm text-[var(--color-accent)]">{contactEmail}</div>
                 <div className="text-xs text-gray-500 mt-1">Response within 2 business days</div>
               </div>
-              <a href="mailto:privacy@mirrorwealth.com" className="flex-shrink-0 bg-gradient-to-r from-[#FF4500] to-[#FF6B35] text-white text-sm font-medium px-5 py-2.5 rounded-full hover:opacity-90 transition-opacity">
+              <a href={`mailto:${contactEmail}`} className="flex-shrink-0 bg-gradient-to-r from-[var(--color-accent)] to-[var(--color-accent-soft)] text-white text-sm font-medium px-5 py-2.5 rounded-full hover:opacity-90 transition-opacity">
                 Send Email
               </a>
             </div>
@@ -273,12 +250,12 @@ export default function Privacy() {
       </div>
 
       {/* Footer */}
-      <footer className="border-t border-[#111] py-8 px-6">
+      <footer className="border-t border-[var(--color-card)] py-8 px-6">
         <div className="mx-auto max-w-6xl flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="text-xs text-gray-600">&copy; 2025 MirrorWealth. All rights reserved.</p>
           <div className="flex gap-5 text-xs text-gray-500">
             <Link to="/terms" className="hover:text-white transition-colors">Terms of Service</Link>
-            <Link to="/privacy" className="text-[#FF4500]">Privacy Policy</Link>
+            <Link to="/privacy" className="text-[var(--color-accent)]">Privacy Policy</Link>
             <a href="mailto:hello@mirrorwealth.com" className="hover:text-white transition-colors">Contact</a>
           </div>
         </div>
@@ -286,3 +263,6 @@ export default function Privacy() {
     </div>
   )
 }
+
+
+

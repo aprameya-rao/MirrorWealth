@@ -1,13 +1,13 @@
 import { Bell, Search, User, Settings, Menu } from 'lucide-react'
-import { useState } from 'react'
 
 import logo from '../pages/logo.png'
+import mockData from '../data/mockData.json'
 interface HeaderProps {
   onMenuClick: () => void
 }
 
 export default function Header({ onMenuClick }: HeaderProps) {
-  const [showNotifications, setShowNotifications] = useState(false)
+  const { userName, plan, searchPlaceholder } = mockData.header
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md">
@@ -31,7 +31,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-secondary" />
             <input
               type="search"
-              placeholder="Search assets, accounts..."
+              placeholder={searchPlaceholder}
               className="w-full bg-card border border-border rounded-lg py-2 pl-10 pr-4 text-sm text-foreground placeholder-text-secondary focus:border-accent focus:outline-none"
             />
           </div>
@@ -55,8 +55,8 @@ export default function Header({ onMenuClick }: HeaderProps) {
           {/* Profile */}
           <div className="flex items-center gap-3 pl-4 border-l border-border">
             <div className="text-right">
-              <p className="text-sm font-medium text-foreground">John Doe</p>
-              <p className="text-xs text-text-secondary">Premium</p>
+              <p className="text-sm font-medium text-foreground">{userName}</p>
+              <p className="text-xs text-text-secondary">{plan}</p>
             </div>
             <div className="h-8 w-8 rounded-full bg-gradient-to-br from-accent to-accent-secondary flex items-center justify-center">
               <User className="h-4 w-4 text-foreground" />
@@ -67,3 +67,5 @@ export default function Header({ onMenuClick }: HeaderProps) {
     </header>
   )
 }
+
+

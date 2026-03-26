@@ -1,5 +1,6 @@
-import { TrendingUp, TrendingDown, Gauge } from 'lucide-react'
+import { TrendingUp, Gauge } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import mockData from '../data/mockData.json'
 
 interface KPICardsProps {
   totalValue?: number
@@ -8,11 +9,13 @@ interface KPICardsProps {
   riskScore?: number
 }
 
+const defaultMetrics = mockData.dashboard.metrics
+
 export default function KPICards({ 
-  totalValue = 5842500, 
-  dailyPnL = 12450, 
-  dailyPnLPercent = 2.15,
-  riskScore = 72 
+  totalValue = defaultMetrics.totalValue, 
+  dailyPnL = defaultMetrics.dailyPnL, 
+  dailyPnLPercent = defaultMetrics.dailyPnLPercent,
+  riskScore = defaultMetrics.riskScore 
 }: KPICardsProps) {
   const [displayValue, setDisplayValue] = useState(0)
   const [displayPnL, setDisplayPnL] = useState(0)
@@ -101,3 +104,5 @@ export default function KPICards({
     </div>
   )
 }
+
+
