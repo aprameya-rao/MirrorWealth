@@ -11,6 +11,7 @@ class User(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     email: Mapped[str] = mapped_column(String, unique=True, index=True)
+    hashed_password: Mapped[str] = mapped_column(String)
     full_name: Mapped[str] = mapped_column(String)
     
     # Mathematical output from your Psychometric Scoring Algorithm
@@ -34,3 +35,12 @@ class RiskProfile(Base):
     loss_tolerance_score: Mapped[int] = mapped_column(Integer)
     
     user: Mapped["User"] = relationship(back_populates="risk_profile")
+
+
+class Portfolio(Base):
+    __tablename__ = "portfolios"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    
+    user: Mapped["User"] = relationship(back_populates="portfolio")

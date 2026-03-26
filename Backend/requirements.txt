@@ -15,7 +15,10 @@ fastapi
 uvicorn[standard] 
 pydantic-settings 
 requests
-
+numpy 
+pandas 
+scipy
+feedparser
 
 
 
