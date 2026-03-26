@@ -1,0 +1,9 @@
+sqlalchemy 
+asyncpg 
+psycopg2-binary 
+pgvector 
+pydantic
+python-dotenv
+alembic
+
+# alembic needs to be installed

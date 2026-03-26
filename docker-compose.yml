@@ -1,0 +1,25 @@
+services:
+  # The Primary Database (PostgreSQL + pgvector)
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: sip_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: sip_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # The Message Broker for Celery
+  redis:
+    image: redis:7-alpine
+    container_name: sip_redis
+    restart: always
+    ports:
+      - "6380:6379" # <--- CHANGED THIS: Maps host port 6380 to container port 6379
+
+volumes:
+  postgres_data:
