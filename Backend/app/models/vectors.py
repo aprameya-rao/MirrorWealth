@@ -3,8 +3,7 @@ from datetime import datetime
 from sqlalchemy import ForeignKey, DateTime, Text
 from sqlalchemy.orm import Mapped, mapped_column
 from pgvector.sqlalchemy import Vector
-
-from .base import Base
+from app.models.base import Base
 
 class MarketSentiment(Base):
     """Vector database table for the Sentiment and Fundamental Agents."""

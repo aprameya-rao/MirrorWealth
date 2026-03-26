@@ -7,8 +7,7 @@ from langchain_core.messages import HumanMessage
 
 from app.quant.mvo import get_optimal_weights
 from app.schemas.portfolio import PortfolioRequest, PortfolioResponse
-from app.models.user import User
-from app.models.portfolio import Portfolio, PortfolioPosition
+from app.models import User, Portfolio, PortfolioPosition
 
 from app.agents.graph import app_graph
 from app.core.db import get_db
@@ -65,7 +64,7 @@ async def get_portfolio_recommendation(
         }
 
         # 4. Run the AI Graph
-        final_state = app_graph.invoke(initial_state)
+        final_state = await app_graph.ainvoke(initial_state)
 
         # 5. Extract AI Constraints
         ai_data = final_state.get("optimization_constraints", {})
