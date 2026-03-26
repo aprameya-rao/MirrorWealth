@@ -5,5 +5,18 @@ pgvector
 pydantic
 python-dotenv
 alembic
+langgraph
+langchain-core
+langchain-google-genai
+PyPortfolioOpt 
+yfinance 
+pandas
+fastapi 
+uvicorn[standard] 
+pydantic-settings 
+requests
+
+
+
 
 # alembic needs to be installed
