@@ -12,7 +12,7 @@ export default function App({ children }: AppProps) {
   const location = useLocation()
 
   // Routes where sidebar and header should be hidden
-  const noLayoutRoutes = ['/Signin', '/Signup', '/Privacy', '/Terms']
+  const noLayoutRoutes = ['/signin', '/signup', '/privacy', '/terms']
   const hideLayout = noLayoutRoutes.includes(location.pathname)
 
   // If it's a no-layout route, just render children without sidebar/header
