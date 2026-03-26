@@ -406,67 +406,86 @@ export default function AllocationPage() {
 
           {/* Performance Trend */}
           <div className="glass-card rounded-3xl p-8">
-            <div className="flex items-center justify-between mb-8">
-              <div className="flex items-center gap-4">
-                <div className="w-16 h-16 bg-gradient-to-br from-[#FF6B35] to-[#FF8C42] rounded-2xl flex items-center justify-center shadow-2xl">
-                  <TrendingUp className="h-8 w-8 text-white" />
-                </div>
-                <div>
-                  <h3 className="text-2xl font-bold text-white">Performance Trend</h3>
-                  <p className="text-gray-400">YTD Returns by Asset Class</p>
+  <div className="flex items-center justify-between mb-8">
+    <div className="flex items-center gap-4">
+      <div className="w-16 h-16 bg-gradient-to-br from-[#FF6B35] to-[#FF8C42] rounded-2xl flex items-center justify-center shadow-2xl">
+        <TrendingUp className="h-8 w-8 text-white" />
+      </div>
+      <div>
+        <h3 className="text-2xl font-bold text-white">Performance Trend</h3>
+        <p className="text-gray-400">Current Returns by Asset Class</p>
+      </div>
+    </div>
+    <div className="pill text-sm">
+      <BarChart3 className="h-4 w-4" /> Details
+    </div>
+  </div>
+  
+  <div className="space-y-6">
+    <div className="h-80 relative">
+     
+      
+      <div className="flex h-full items-end gap-4 relative z-0">
+        {assetKeys.map((assetKey: AssetKey, idx: number) => {
+          const latestData = performanceData[performanceData.length - 1]
+          const value = latestData[assetKey] as number
+          const colors = {
+            equity: '#FF4500',
+            debt: '#FF6B35',
+            gold: '#FF8C42',
+            crypto: '#FFA559'
+          }
+          const maxValue = 70
+          const height = (value / maxValue) * 100
+          
+          return (
+            <div key={assetKey} className="flex-1 flex flex-col items-center gap-3">
+              <div className="w-full bg-[#1a1a1a] rounded-lg h-64 relative group">
+                <div 
+                  className="absolute bottom-0 left-0 right-0 rounded-lg transition-all duration-1000 group-hover:opacity-80"
+                  style={{ 
+                    height: `${height}%`,
+                    backgroundColor: colors[assetKey],
+                    opacity: 0.9
+                  }}
+                />
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                  <span className="text-xs font-bold text-white bg-black/50 px-2 py-1 rounded-full">{value.toFixed(1)}%</span>
                 </div>
               </div>
-              <div className="pill text-sm">
-                <BarChart3 className="h-4 w-4" /> Details
-              </div>
+              <span className="text-sm font-semibold text-white capitalize">{assetKey}</span>
+              <span className="text-lg font-bold" style={{ color: colors[assetKey] }}>{value.toFixed(1)}%</span>
             </div>
-            
-            <div className="space-y-6">
-              <div className="h-52">
-                <div className="flex h-full items-end gap-2">
-                  {assetKeys.map((assetKey: AssetKey, idx: number) => {
-                    const latestData = performanceData[performanceData.length - 1]
-                    const value = latestData[assetKey] as number
-                    const colors = {
-                      equity: '#FF4500',
-                      debt: '#FF6B35',
-                      gold: '#FF8C42',
-                      crypto: '#FFA559'
-                    }
-                    const maxValue = 70
-                    const height = (value / maxValue) * 100
-                    
-                    return (
-                      <div key={assetKey} className="flex-1 flex flex-col items-center gap-2">
-                        <div className="w-full bg-[#1a1a1a] rounded-lg h-40 relative group">
-                          <div 
-                            className="absolute bottom-0 left-0 right-0 rounded-lg transition-all duration-1000 group-hover:opacity-80"
-                            style={{ 
-                              height: `${height}%`,
-                              backgroundColor: colors[assetKey],
-                              opacity: 0.9
-                            }}
-                          />
-                          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                            <span className="text-xs font-bold text-white bg-black/50 px-2 py-1 rounded-full">{value.toFixed(1)}%</span>
-                          </div>
-                        </div>
-                        <span className="text-xs text-gray-400 font-mono capitalize">{assetKey}</span>
-                        <span className="text-sm font-semibold text-white">{value.toFixed(1)}%</span>
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-              
-              <div className="flex justify-between text-xs text-gray-500 pt-4 border-t border-[#222222]">
-                {performanceData.slice(-6).map((data) => (
-                  <span key={data.month} className="font-mono hover:text-[#FF4500] transition-colors cursor-pointer">{data.month}</span>
-                ))}
-              </div>
+          )
+        })}
+      </div>
+    </div>
+    
+    {/* Legend */}
+    <div className="pt-4 border-t border-[#222222] flex items-center justify-between">
+      <div className="flex items-center gap-4">
+        {assetKeys.map((assetKey, idx) => {
+          const colors = {
+            equity: '#FF4500',
+            debt: '#FF6B35',
+            gold: '#FF8C42',
+            crypto: '#FFA559'
+          }
+          return (
+            <div key={assetKey} className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: colors[assetKey] }} />
+              <span className="text-xs text-gray-400 capitalize">{assetKey}</span>
             </div>
-          </div>
-        </div>
+          )
+        })}
+      </div>
+      <div className="flex items-center gap-2">
+        <div className="w-4 h-px border-t border-dashed border-[#FF8C42]"></div>
+        <span className="text-xs text-gray-500">Target (70%)</span>
+      </div>
+    </div>
+  </div>
+</div></div>
 
         {/* Bottom Analysis Row */}
         <div className="grid grid-cols-1 2xl:grid-cols-3 gap-6">

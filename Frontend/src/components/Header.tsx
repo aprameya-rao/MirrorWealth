@@ -1,17 +1,30 @@
-import { Bell, Search, User, Settings, Menu } from 'lucide-react'
+// src/components/Header.tsx
+import { Bell, Search, User, Settings, Menu, LogOut } from 'lucide-react'
 import { useState } from 'react'
-
+import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 import logo from '../pages/logo.png'
+
 interface HeaderProps {
   onMenuClick: () => void
 }
 
 export default function Header({ onMenuClick }: HeaderProps) {
   const [showNotifications, setShowNotifications] = useState(false)
+  
+  // Bring in auth context and navigation
+  const { logout } = useAuth()
+  const navigate = useNavigate()
+
+  const handleLogout = () => {
+    logout()
+    navigate('/signin') // Redirect to sign-in page immediately
+  }
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
+        
         {/* Menu Button */}
         <button onClick={onMenuClick} className="md:hidden p-2 text-text-secondary hover:text-foreground transition-colors">
           <Menu className="h-5 w-5" />
@@ -20,41 +33,28 @@ export default function Header({ onMenuClick }: HeaderProps) {
         {/* Logo */}
         <div className="flex items-center gap-2">
           <div className="relative">
-                        <img src={logo} alt="MirrorWealth Logo" className="w-7 h-7 object-cover" />
-                      </div>
-          <h1 className="text-lg font-bold text-foreground">MirrorWealth</h1>
-        </div>
-
-        {/* Search Bar */}
-        <div className="hidden flex-1 mx-12 sm:flex">
-          <div className="relative w-full max-w-md">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-secondary" />
-            <input
-              type="search"
-              placeholder="Search assets, accounts..."
-              className="w-full bg-card border border-border rounded-lg py-2 pl-10 pr-4 text-sm text-foreground placeholder-text-secondary focus:border-accent focus:outline-none"
-            />
+            <img src={logo} alt="MirrorWealth Logo" className="w-7 h-7 object-cover" />
           </div>
+          <h1 className="text-lg font-bold text-foreground">MirrorWealth</h1>
         </div>
 
         {/* Right Actions */}
         <div className="flex items-center gap-4">
-          {/* Notifications */}
-          <div className="relative">
-            <button className="relative p-2 text-text-secondary hover:text-foreground transition-colors">
-              <Bell className="h-5 w-5" />
-              <span className="absolute top-1 right-1 h-2 w-2 bg-accent rounded-full"></span>
-            </button>
-          </div>
-
-          {/* Settings */}
-          <button className="p-2 text-text-secondary hover:text-foreground transition-colors">
-            <Settings className="h-5 w-5" />
+          
+          {/* Logout Button */}
+          <button 
+            onClick={handleLogout}
+            className="flex items-center gap-2 p-2 text-sm text-text-secondary hover:text-[#FF4500] transition-colors"
+            title="Log Out"
+          >
+            <LogOut className="h-5 w-5" />
+            <span className="hidden sm:inline font-medium">Log Out</span>
           </button>
 
           {/* Profile */}
           <div className="flex items-center gap-3 pl-4 border-l border-border">
-            <div className="text-right">
+            <div className="text-right hidden sm:block">
+              {/* Note: This is currently hardcoded. We can make this dynamic next! */}
               <p className="text-sm font-medium text-foreground">John Doe</p>
               <p className="text-xs text-text-secondary">Premium</p>
             </div>
@@ -62,6 +62,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
               <User className="h-4 w-4 text-foreground" />
             </div>
           </div>
+          
         </div>
       </div>
     </header>

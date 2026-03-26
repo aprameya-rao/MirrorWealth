@@ -1,4 +1,4 @@
-// src/pages/Signin.tsx
+// src/pages/Signup.tsx
 import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Eye, EyeOff, ArrowRight, Sparkles, AlertCircle } from 'lucide-react'
@@ -6,7 +6,8 @@ import { useAuth } from '../context/AuthContext'
 import api from '../api/axios'
 import logo from './logo.png' // Adjust this path if your logo is elsewhere!
 
-export default function Signin() {
+export default function Signup() {
+  const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -23,7 +24,7 @@ export default function Signin() {
     e.preventDefault()
     setError('')
     
-    if (!email || !password) { 
+    if (!fullName || !email || !password) { 
       setError('Please fill in all fields.')
       return 
     }
@@ -31,19 +32,34 @@ export default function Signin() {
     setLoading(true)
     
     try {
+      // 1. Create the user via your FastAPI backend
+      await api.post('/auth/signup', {
+        email: email,
+        password: password,
+        full_name: fullName,
+        risk_answers: {
+          time_horizon_score: 4,
+          liquidity_score: 3,
+          loss_tolerance_score: 5
+        }
+      })
+
+      // 2. Automatically log them in to get the JWT token
       const formData = new URLSearchParams()
-      formData.append('username', email) // FastAPI requires 'username'
+      formData.append('username', email) // FastAPI OAuth2 strictly requires 'username'
       formData.append('password', password)
 
-      const response = await api.post('/auth/token', formData, {
+      const loginRes = await api.post('/auth/token', formData, {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
       })
 
-      login(response.data.access_token)
+      // 3. Save the token and route to the dashboard
+      login(loginRes.data.access_token)
       navigate('/dashboard')
+      
     } catch (err: any) {
       console.error(err)
-      setError(err.response?.data?.detail || 'Invalid email or password.')
+      setError(err.response?.data?.detail || 'Failed to create account. Email may already be in use.')
     } finally {
       setLoading(false)
     }
@@ -118,8 +134,8 @@ export default function Signin() {
             ))}
           </div>
 
-          <Link to="/signup" className="pill-btn border border-white/10 px-6 py-2 text-sm hover:bg-white/5">
-            Get Started
+          <Link to="/signin" className="pill-btn border border-white/10 px-6 py-2 text-sm hover:bg-white/5">
+            Login
           </Link>
         </div>
       </nav>
@@ -178,8 +194,8 @@ export default function Signin() {
         <div className="w-full lg:w-1/2 flex flex-col justify-center items-center px-8 panel-right">
           <div className="w-full max-w-md">
             <div className="mb-10">
-              <h1 className="text-4xl font-bold mb-3">Sign in</h1>
-              <p className="text-gray-500">Welcome back to the future of wealth.</p>
+              <h1 className="text-4xl font-bold mb-3">Sign Up</h1>
+              <p className="text-gray-500">Welcome to the future of wealth.</p>
             </div>
 
             <div className="flex gap-4 mb-8">
@@ -194,6 +210,14 @@ export default function Signin() {
                   {error}
                 </div>
               )}
+
+              <input 
+                type="text" 
+                placeholder="Full Name" 
+                className="pill-input text-sm" 
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+              />
 
               <input 
                 type="email" 
@@ -221,13 +245,13 @@ export default function Signin() {
               </div>
 
               <button disabled={loading} className="pill-btn btn-primary w-full mt-4 group">
-                {loading ? 'Authenticating...' : 'Sign In'}
+                {loading ? 'Creating Account...' : 'Sign Up'}
                 {!loading && <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />}
               </button>
             </form>
 
             <div className="mt-10 flex items-center justify-between text-[11px] text-gray-600 font-medium tracking-wide">
-              <Link to="/signup" className="hover:text-[#FF4500]">CREATE ACCOUNT</Link>
+              <Link to="/signin" className="hover:text-[#FF4500]">LOGIN</Link>
               <span className="text-gray-800">|</span>
               <Link to="/reset" className="hover:text-[#FF4500]">FORGOT PASSWORD</Link>
               <span className="text-gray-800">|</span>
