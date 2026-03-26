@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from fastapi import FastAPI
-from app.api.v1.endpoints import portfolio # Import your new router
+from app.api.v1.endpoints import portfolio ,risk
 from fastapi_utils.tasks import repeat_every
 from app.core.db import SessionLocal
 from sqlalchemy.future import select
@@ -73,6 +73,7 @@ async def record_daily_snapshots():
 
 # Register the route
 app.include_router(portfolio.router, prefix="/api/v1/portfolio", tags=["Portfolio"])
+app.include_router(risk.router, prefix="/risk", tags=["Risk"])
 
 @app.get("/")
 def read_root():

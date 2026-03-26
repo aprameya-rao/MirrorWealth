@@ -4,13 +4,13 @@ import numpy as np
 import pandas as pd
 import yfinance as yf
 import scipy.optimize as sco
+from sklearn.covariance import LedoitWolf  # <-- NEW: Institutional Risk Math
 from typing import List, Dict
 
-def _calculate_mvo_sync(tickers: List[str], risk_aversion: float, equity_max: float = 0.85) -> Dict[str, float]:
+def _calculate_mvo_sync(tickers: List[str], risk_aversion: float, equity_max: float, equity_tickers: List[str]) -> Dict[str, float]:
     """
     Synchronous function that does the heavy math.
-    It minimizes negative utility to find the optimal portfolio weights,
-    respecting the AI-generated maximum equity constraint.
+    Uses Ledoit-Wolf Shrinkage for stable covariance and dynamic equity caps.
     """
     if not tickers:
         return {}
@@ -33,11 +33,20 @@ def _calculate_mvo_sync(tickers: List[str], risk_aversion: float, equity_max: fl
         # 2. Calculate Expected Returns and Covariance (Annualized)
         daily_returns = prices.pct_change().dropna()
         mean_returns = daily_returns.mean() * 252
-        cov_matrix = daily_returns.cov() * 252
+
+        # --- UPGRADE: Ledoit-Wolf Covariance Shrinkage ---
+        # This prevents the optimizer from acting erratically based on short-term noise.
+        try:
+            lw = LedoitWolf()
+            shrunk_cov = lw.fit(daily_returns).covariance_ * 252
+            # Rebuild a DataFrame so we can use .values easily later
+            cov_matrix = pd.DataFrame(shrunk_cov, index=daily_returns.columns, columns=daily_returns.columns)
+        except Exception as e:
+            print(f"⚠️ Ledoit-Wolf failed, falling back to standard covariance: {e}")
+            cov_matrix = daily_returns.cov() * 252
+        # -------------------------------------------------
 
         # --- THE QUANT FIX: SYNTHETIC RISK-FREE RATE ---
-        # LIQUIDBEES does not appreciate in price (it pays dividends), so its historical 
-        # price return looks like 0%. We override it with a realistic Indian risk-free yield.
         if "LIQUIDBEES.NS" in mean_returns.index:
             mean_returns["LIQUIDBEES.NS"] = 0.065 # 6.5% Expected Return
             print("💉 Injected Synthetic Risk-Free Rate (6.5%) for LIQUIDBEES.NS")
@@ -55,19 +64,19 @@ def _calculate_mvo_sync(tickers: List[str], risk_aversion: float, equity_max: fl
         # 4. Set the Constraints and Bounds
         constraints = ({'type': 'eq', 'fun': lambda x: np.sum(x) - 1})
         
-        # --- THE FINAL FIX: DYNAMIC BOUNDS FROM AI ---
+        # --- UPGRADE: DYNAMIC BOUNDS FROM DB ---
         custom_bounds = []
         for ticker in tickers:
-            if "NIFTY" in ticker.upper():
-                # Restrict Equity to the AI's recommended maximum.
+            if ticker in equity_tickers:
+                # Restrict ALL Equities to the AI's recommended maximum.
                 # Minimum 5% to force diversification.
                 custom_bounds.append((0.05, float(equity_max)))
             else:
-                # Cash/Liquid can be anywhere from 5% to 100%
+                # Cash/Gold/Debt can be anywhere from 5% to 100%
                 custom_bounds.append((0.05, 1.0))
         
         bounds = tuple(custom_bounds)
-        # ---------------------------------------------
+        # ---------------------------------------
 
         initial_guess = num_assets * [1. / num_assets]
 
@@ -98,8 +107,8 @@ def _calculate_mvo_sync(tickers: List[str], risk_aversion: float, equity_max: fl
         print(f"❌ Error during MVO calculation: {e}")
         return {ticker: round(1.0 / len(tickers), 4) for ticker in tickers}
 
-async def get_optimal_weights(tickers: List[str], risk_aversion: float, equity_max: float = 0.85) -> Dict[str, float]:
+async def get_optimal_weights(tickers: List[str], risk_aversion: float, equity_max: float, equity_tickers: List[str]) -> Dict[str, float]:
     """
     Async wrapper to prevent the heavy Pandas/SciPy math from blocking FastAPI.
     """
-    return await asyncio.to_thread(_calculate_mvo_sync, tickers, risk_aversion, equity_max)
+    return await asyncio.to_thread(_calculate_mvo_sync, tickers, risk_aversion, equity_max, equity_tickers)

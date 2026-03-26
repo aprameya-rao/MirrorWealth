@@ -1,95 +1,72 @@
-# seed.py
 import asyncio
 import os
-from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy import delete
+from dotenv import load_dotenv
 
 # Import your models
-from app.models.user import User
-from app.models.portfolio import Asset, Portfolio, PortfolioPosition, AssetClass, InstrumentType
+from app.models.portfolio import Asset, AssetClass, InstrumentType
+from app.models.base import Base
 
-# Load environment variables
 load_dotenv()
 
-async def seed_database():
-    print("🌱 Starting database seed...")
+DATABASE_URL = os.getenv("DATABASE_URL")
+if DATABASE_URL and DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+asyncpg://", 1)
+
+engine = create_async_engine(DATABASE_URL)
+AsyncSessionLocal = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+
+# HIGH-LIQUIDITY TICKERS (Verified for Yahoo Finance)
+RAW_DATA = [
+    # Equity - Large Cap
+    {"ticker_or_isin": "NIFTYBEES", "name": "Nippon India ETF Nifty BeES", "asset_class": "Equity", "instrument_type": "ETF", "latest_nav": 264.0},
+    {"ticker_or_isin": "JUNIORBEES", "name": "Nippon India ETF Junior BeES", "asset_class": "Equity", "instrument_type": "ETF", "latest_nav": 686.0},
+    {"ticker_or_isin": "SETFNIF50", "name": "SBI Nifty 50 ETF", "asset_class": "Equity", "instrument_type": "ETF", "latest_nav": 249.0},
     
-    # 1. Connect to the database
-    db_url = os.getenv("DATABASE_URL")
-    engine = create_async_engine(db_url, connect_args={"prepared_statement_cache_size": 0})
-    AsyncSessionLocal = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+    # Equity - Sectors & Factors
+    {"ticker_or_isin": "BANKBEES", "name": "Nippon India ETF Bank BeES", "asset_class": "Equity", "instrument_type": "ETF", "latest_nav": 553.0},
+    {"ticker_or_isin": "ITBEES", "name": "Nippon India ETF IT BeES", "asset_class": "Equity", "instrument_type": "ETF", "latest_nav": 32.0},
+    {"ticker_or_isin": "CPSEETF", "name": "CPSE ETF", "asset_class": "Equity", "instrument_type": "ETF", "latest_nav": 100.0},
+    {"ticker_or_isin": "MAFANG", "name": "Mirae Asset NYSE FANG+ ETF", "asset_class": "Equity", "instrument_type": "ETF", "latest_nav": 159.0},
+    {"ticker_or_isin": "MID150BEES", "name": "Nippon India ETF Nifty Midcap 150", "asset_class": "Equity", "instrument_type": "ETF", "latest_nav": 211.0},
+    
+    # Commodities
+    {"ticker_or_isin": "GOLDBEES", "name": "Nippon India ETF Gold BeES", "asset_class": "Commodity", "instrument_type": "ETF", "latest_nav": 119.0},
+    {"ticker_or_isin": "SILVERBEES", "name": "Nippon India ETF Silver BeES", "asset_class": "Commodity", "instrument_type": "ETF", "latest_nav": 221.0},
+    {"ticker_or_isin": "HDFCGOLD", "name": "HDFC Gold ETF", "asset_class": "Commodity", "instrument_type": "ETF", "latest_nav": 122.0},
 
+    # Cash / Liquid (Crucial for the "Risk-Free Rate" calculation)
+    {"ticker_or_isin": "LIQUIDBEES", "name": "Nippon India ETF Liquid BeES", "asset_class": "Cash", "instrument_type": "ETF", "latest_nav": 1000.0},
+]
+
+async def seed_assets():
     async with AsyncSessionLocal() as session:
+        print("🚀 Seeding High-Liquidity Assets...")
         try:
-            # 2. Create the Universe of Assets
-            print("Injecting Assets...")
-            nifty_etf = Asset(
-                ticker_or_isin="NIFTYBEES.NS",
-                name="Nippon India Nifty 50 BeES ETF",
-                asset_class=AssetClass.EQUITY,
-                instrument_type=InstrumentType.ETF,
-                latest_nav=250.50
-            )
-            liquid_etf = Asset(
-                ticker_or_isin="LIQUIDBEES.NS",
-                name="Nippon India ETF Liquid BeES",
-                asset_class=AssetClass.CASH,
-                instrument_type=InstrumentType.ETF,
-                latest_nav=1000.00
-            )
-            session.add_all([nifty_etf, liquid_etf])
-            await session.commit() # Commit to generate their IDs
-
-            # 3. Create the Test User
-            print("Injecting Test User...")
-            test_user = User(
-                email="test_user@mirrorwealth.com",
-                full_name="Arjun Developer",
-                rra_coefficient=4.5 # Moderately aggressive
-            )
-            session.add(test_user)
+            # We don't delete here because we already ran TRUNCATE manually
+            asset_objects = []
+            for item in RAW_DATA:
+                ticker = f"{item['ticker_or_isin']}.NS"
+                
+                asset = Asset(
+                    ticker_or_isin=ticker,
+                    name=item["name"],
+                    asset_class=AssetClass[item["asset_class"].upper()],
+                    instrument_type=InstrumentType[item["instrument_type"].upper()],
+                    latest_nav=float(item["latest_nav"])
+                )
+                asset_objects.append(asset)
+            
+            session.add_all(asset_objects)
             await session.commit()
-
-            # 4. Create their Portfolio (with ₹50,000 uninvested cash)
-            print("Injecting Portfolio...")
-            test_portfolio = Portfolio(
-                user_id=test_user.id,
-                cash_balance=50000.0 
-            )
-            session.add(test_portfolio)
-            await session.commit()
-
-            # 5. Give them some existing holdings
-            print("Injecting Existing Holdings...")
-            pos1 = PortfolioPosition(
-                portfolio_id=test_portfolio.id,
-                asset_id=nifty_etf.id,
-                quantity=100.0,
-                average_buy_price=240.0,
-                target_weight=0.0,
-                current_weight=0.0
-            )
-            pos2 = PortfolioPosition(
-                portfolio_id=test_portfolio.id,
-                asset_id=liquid_etf.id,
-                quantity=20.0,
-                average_buy_price=1000.0,
-                target_weight=0.0,
-                current_weight=0.0
-            )
-            session.add_all([pos1, pos2])
-            await session.commit()
-
-            print("✅ Database successfully seeded!")
-            print(f"👉 User ID to use in Postman/Swagger: {test_user.id}")
-
+            print(f"✅ Successfully seeded {len(asset_objects)} verified assets.")
         except Exception as e:
-            print(f"❌ Error during seeding: {e}")
             await session.rollback()
+            print(f"❌ Error: {e}")
         finally:
             await session.close()
-            await engine.dispose()
 
 if __name__ == "__main__":
-    asyncio.run(seed_database())
+    asyncio.run(seed_assets())

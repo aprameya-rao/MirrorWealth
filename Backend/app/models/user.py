@@ -2,8 +2,9 @@
 from datetime import datetime
 from typing import Optional
 from typing import Optional, TYPE_CHECKING
-from sqlalchemy import String, Float, Integer, ForeignKey, DateTime
+from sqlalchemy import Column, Integer, String, Float, JSON, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import String, Float, ForeignKey, DateTime, Enum as SQLEnum
 
 from app.models.base import Base
 
@@ -28,19 +29,13 @@ class User(Base):
         back_populates="user", 
         uselist=False
     )
-
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
 
 class RiskProfile(Base):
-    """Stores the raw questionnaire answers to recalculate RRA if needed."""
     __tablename__ = "risk_profiles"
-
-    id: Mapped[int] = mapped_column(primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
-    
-    time_horizon_score: Mapped[int] = mapped_column(Integer)
-    liquidity_score: Mapped[int] = mapped_column(Integer)
-    loss_tolerance_score: Mapped[int] = mapped_column(Integer)
-    
-    user: Mapped["User"] = relationship(back_populates="risk_profile")
-
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), unique=True)
+    total_risk_score = Column(Integer, default=0)
+    rra_coefficient = Column(Float, default=4.5)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

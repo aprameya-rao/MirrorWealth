@@ -28,3 +28,12 @@ class PortfolioResponse(BaseModel):
     
     rationale: str
     approved_assets: List[str]
+
+
+class AnswerSubmission(BaseModel):
+    question_id: int
+    selected_score: int
+
+class RiskAssessmentRequest(BaseModel):
+    user_id: int
+    answers: List[AnswerSubmission]

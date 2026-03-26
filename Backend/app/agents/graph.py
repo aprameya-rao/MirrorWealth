@@ -22,6 +22,7 @@ class AgentState(TypedDict):
     tax_report: list           
     optimization_constraints: dict 
     approved_asset_classes: list
+    available_tickers: list
 
 # 3. Initialize LLM
 llm = ChatGoogleGenerativeAI(model="gemini-3-flash-preview", temperature=0)

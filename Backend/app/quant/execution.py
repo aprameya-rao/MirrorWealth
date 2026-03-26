@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from sqlalchemy import update
+from sqlalchemy.orm import selectinload
 from app.models import Portfolio, PortfolioPosition, Asset
 from datetime import datetime
 
@@ -8,67 +8,86 @@ async def execute_trade_plan(db: AsyncSession, user_id: int, action_plan: dict):
     """
     Physically updates the DB based on the calculate_orders output.
     """
-    # 1. Fetch the Portfolio
+    # 1. Fetch the Portfolio (with positions loaded to avoid 'lazy load' errors)
     portfolio_query = await db.execute(
-        select(Portfolio).where(Portfolio.user_id == user_id)
+        select(Portfolio)
+        .where(Portfolio.user_id == user_id)
+        .options(selectinload(Portfolio.positions).selectinload(PortfolioPosition.asset))
     )
     portfolio = portfolio_query.scalar_one_or_none()
     
     if not portfolio:
         raise Exception("Portfolio not found for execution")
 
-    # 2. Update Cash Balance
-    # action_plan['projected_remaining_cash'] comes from your Rebalancer
-    portfolio.cash_balance = action_plan["projected_remaining_cash"]
+    # 2. Safety Check: Ensure projected cash isn't negative
+    new_cash = action_plan.get("portfolio_summary", {}).get("projected_cash_balance")
+    if new_cash is None:
+        # Fallback if the key is nested differently in your JSON
+        new_cash = action_plan.get("projected_remaining_cash", portfolio.cash_balance)
+    
+    if new_cash < -1.0: # Allowing a ₹1 buffer for rounding
+        raise Exception(f"Insufficient cash for this trade plan. Need ₹{abs(new_cash)} more.")
+
+    portfolio.cash_balance = new_cash
     portfolio.last_rebalanced_at = datetime.utcnow()
 
     # 3. Process each order
-    for ticker, details in action_plan["orders"].items():
-        if details["action"] == "HOLD":
+    # Note: Using .get() because 'recommendations' is the key in your /recommend output
+    orders = action_plan.get("recommendations", [])
+
+    for order in orders:
+        ticker = order["ticker"]
+        action = order["action"]
+        
+        if action == "HOLD":
             continue
 
-        # Find the Asset ID for this ticker
-        asset_query = await db.execute(
-            select(Asset).where(Asset.ticker_or_isin == ticker)
-        )
+        # Find the Asset object
+        asset_query = await db.execute(select(Asset).where(Asset.ticker_or_isin == ticker))
         asset = asset_query.scalar_one_or_none()
         if not asset:
-            print(f"Warning: Asset {ticker} not found in DB. Skipping.")
+            print(f"⚠️ Warning: Asset {ticker} not found in DB. Skipping.")
             continue
 
-        # Check if user already owns this asset
-        pos_query = await db.execute(
-            select(PortfolioPosition).where(
-                PortfolioPosition.portfolio_id == portfolio.id,
-                PortfolioPosition.asset_id == asset.id
-            )
-        )
-        existing_pos = pos_query.scalar_one_or_none()
+        # Check existing positions
+        existing_pos = next((p for p in portfolio.positions if p.asset_id == asset.id), None)
 
-        if details["action"] == "BUY":
+        if action == "BUY":
+            units_to_buy = float(order["units"])
+            buy_price = float(order["price"])
+            
             if existing_pos:
-                # Update existing: New Qty & New Weighted Avg Cost
-                total_cost = (existing_pos.quantity * existing_pos.average_buy_price) + (details["units"] * details["current_price"])
-                existing_pos.quantity += details["units"]
+                # Update existing: New Weighted Avg Cost
+                total_cost = (existing_pos.quantity * existing_pos.average_buy_price) + (units_to_buy * buy_price)
+                existing_pos.quantity += units_to_buy
                 existing_pos.average_buy_price = total_cost / existing_pos.quantity
             else:
                 # Create new position
                 new_pos = PortfolioPosition(
                     portfolio_id=portfolio.id,
                     asset_id=asset.id,
-                    quantity=details["units"],
-                    average_buy_price=details["current_price"],
-                    target_weight=details["target_weight_percentage"]
+                    quantity=units_to_buy,
+                    average_buy_price=buy_price
                 )
                 db.add(new_pos)
 
-        elif details["action"] == "SELL":
+        elif action == "SELL":
+            units_to_sell = float(order["units"])
             if existing_pos:
-                existing_pos.quantity -= details["units"]
-                # If quantity hits near zero, you might want to delete the row or keep it at 0
+                # Ensure we don't sell more than we have (safety floor)
+                existing_pos.quantity = max(0, existing_pos.quantity - units_to_sell)
+                
+                # Clean up empty rows
                 if existing_pos.quantity <= 0.001:
                     await db.delete(existing_pos)
+            else:
+                print(f"⚠️ Warning: Attempted to sell {ticker} but user doesn't own it.")
 
-    # 4. Commit everything as one transaction
-    await db.commit()
-    return True
+    # 4. Commit as one atomic transaction
+    try:
+        await db.commit()
+        return True
+    except Exception as e:
+        await db.rollback()
+        print(f"❌ Execution Database Error: {str(e)}")
+        raise e
