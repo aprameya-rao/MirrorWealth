@@ -1,19 +1,18 @@
-"""init
+"""Fresh init with updated models
 
-Revision ID: eba0cf639968
+Revision ID: 84ef1726d668
 Revises: 
-Create Date: 2026-03-26 15:08:13.040455
+Create Date: 2026-03-26 18:59:21.258461
 
 """
 from typing import Sequence, Union
 
 from alembic import op
 import sqlalchemy as sa
-from pgvector.sqlalchemy import Vector
-
+import pgvector.sqlalchemy
 
 # revision identifiers, used by Alembic.
-revision: str = 'eba0cf639968'
+revision: str = '84ef1726d668'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -44,7 +43,7 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('asset_id', sa.Integer(), nullable=False),
     sa.Column('context_text', sa.Text(), nullable=False),
-    sa.Column('embedding', Vector(1536), nullable=False),
+    sa.Column('embedding', pgvector.sqlalchemy.vector.VECTOR(dim=1536), nullable=False),
     sa.Column('timestamp', sa.DateTime(), nullable=False),
     sa.ForeignKeyConstraint(['asset_id'], ['assets.id'], ),
     sa.PrimaryKeyConstraint('id')
@@ -52,6 +51,7 @@ def upgrade() -> None:
     op.create_table('portfolios',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=False),
+    sa.Column('cash_balance', sa.Float(), nullable=False),
     sa.Column('last_rebalanced_at', sa.DateTime(), nullable=False),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
     sa.PrimaryKeyConstraint('id')
@@ -69,6 +69,8 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('portfolio_id', sa.Integer(), nullable=False),
     sa.Column('asset_id', sa.Integer(), nullable=False),
+    sa.Column('quantity', sa.Float(), nullable=False),
+    sa.Column('average_buy_price', sa.Float(), nullable=False),
     sa.Column('target_weight', sa.Float(), nullable=False),
     sa.Column('current_weight', sa.Float(), nullable=False),
     sa.ForeignKeyConstraint(['asset_id'], ['assets.id'], ),
