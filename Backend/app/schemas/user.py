@@ -11,6 +11,7 @@ class RiskQuestionnaire(BaseModel):
 class UserCreate(BaseModel):
     """What the React frontend sends us when a user signs up"""
     email: EmailStr
+    password: str
     full_name: str
     risk_answers: RiskQuestionnaire
 

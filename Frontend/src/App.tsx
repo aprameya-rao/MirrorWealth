@@ -11,16 +11,14 @@ export default function App({ children }: AppProps) {
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const location = useLocation()
 
-  // Routes where sidebar and header should be hidden
-  const noLayoutRoutes = ['/Signin', '/Signup', '/Privacy', '/Terms']
-  const hideLayout = noLayoutRoutes.includes(location.pathname)
+  // Converted to lowercase to safely match the route
+  const noLayoutRoutes = ['/signin', '/signup', '/privacy', '/terms']
+  const hideLayout = noLayoutRoutes.includes(location.pathname.toLowerCase())
 
-  // If it's a no-layout route, just render children without sidebar/header
   if (hideLayout) {
     return <>{children}</>
   }
 
-  // Default layout with sidebar and header for authenticated pages
   return (
     <div className="flex h-screen bg-background">
       <Sidebar isOpen={sidebarOpen} onToggle={() => setSidebarOpen(!sidebarOpen)} />
