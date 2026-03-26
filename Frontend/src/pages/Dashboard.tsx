@@ -53,13 +53,63 @@ export default function DashboardPage() {
           --text-muted: #999999;
           --accent: #FF4500;
           --accent-soft: #FF6B35;
+          --accent-mid: #FF8C42;
+          --accent-light: #FFA559;
           --accent-bg: rgba(255, 69, 0, 0.12);
           --hover-bg: rgba(44, 44, 48, 0.6);
-          --success: #00FF88;
-          --success-bg: rgba(0, 255, 136, 0.12);
+          --success: #FF8C42;
+          --success-bg: rgba(255, 140, 66, 0.12);
         }
 
-        /* [Previous styles remain the same...] */
+        body {
+          background: var(--surface);
+        }
+
+        .card {
+          background: #0f0f0f;
+          border: 1px solid var(--border-soft);
+          border-radius: 1rem;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+          transition: all 0.2s ease;
+        }
+
+        .card:hover {
+          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
+          border-color: rgba(255, 69, 0, 0.2);
+        }
+
+        .pill {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.5rem;
+          padding: 0.45rem 0.9rem;
+          border-radius: 1.2rem;
+          border: 1px solid var(--border-soft);
+          background: rgba(32, 32, 35, 0.7);
+          font-size: 0.8125rem;
+          font-weight: 500;
+          color: var(--text);
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .pill:hover {
+          background: var(--hover-bg);
+          border-color: rgba(255, 69, 0, 0.3);
+          transform: translateY(-1px);
+        }
+
+        .pill.accent {
+          background: var(--accent-bg);
+          border-color: rgba(255, 69, 0, 0.35);
+          color: var(--accent);
+        }
+
+        .pill.accent:hover {
+          background: rgba(255, 69, 0, 0.18);
+          border-color: rgba(255, 69, 0, 0.45);
+        }
+
         .gradient-bg {
           background: linear-gradient(135deg, var(--surface) 0%, rgba(255,69,0,0.03) 50%, var(--surface-soft) 100%);
         }
@@ -69,28 +119,79 @@ export default function DashboardPage() {
           backdrop-filter: blur(20px);
           border: 1px solid rgba(44, 44, 48, 0.3);
         }
-        
-        .pulse-glow {
-          box-shadow: 0 0 20px rgba(255, 69, 0, 0.3);
+
+        .text-gradient {
+          background: linear-gradient(90deg, var(--accent), var(--accent-soft));
+          -webkit-background-clip: text;
+          background-clip: text;
+          color: transparent;
         }
-        
-        .metric-sparkline {
+
+        .symbol-badge {
+          width: 2rem;
           height: 2rem;
-          width: 100%;
-          position: relative;
+          border-radius: 0.5rem;
+          background: rgba(40, 40, 44, 0.7);
+          border: 1px solid rgba(80, 80, 84, 0.5);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 0.8rem;
+          font-weight: 600;
+          color: #ddd;
         }
-        
-        .sparkline-line {
-          position: absolute;
-          bottom: 0;
-          height: 3px;
-          border-radius: 2px;
-          background: linear-gradient(90deg, var(--accent), var(--success));
+
+        .label-pill {
+          padding: 0.15rem 0.4rem;
+          border-radius: 0.5rem;
+          border: 1px solid rgba(55, 55, 59, 0.4);
+          background: rgba(55, 55, 59, 0.5);
+          font-size: 0.75rem;
+          font-weight: 600;
+        }
+
+        .label-pill.positive {
+          color: #FF8C42;
+          border-color: rgba(255, 140, 66, 0.3);
+        }
+
+        .label-pill.negative {
+          color: #FFBF6E;
+          border-color: rgba(255, 191, 110, 0.3);
+        }
+
+        .asset-cell {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+        }
+
+        .table {
+          width: 100%;
+          border-collapse: collapse;
+          font-size: 0.8125rem;
+        }
+
+        .table th {
+          text-align: left;
+          padding: 0.8rem 0.5rem 0.8rem 0;
+          font-weight: 400;
+          color: var(--text-muted);
+          border-bottom: 1px solid var(--border);
+        }
+
+        .table td {
+          padding: 0.8rem 0.5rem 0.8rem 0;
+          border-bottom: 1px solid rgba(40, 40, 44, 0.2);
+        }
+
+        .table tr:hover td {
+          background: rgba(44, 44, 48, 0.4);
         }
       `}</style>
 
       <div className="mx-auto max-w-7xl p-6 space-y-8">
-        {/* Enhanced Header */}
+        {/* Header */}
         <div className="gradient-bg rounded-3xl p-8 border border-[var(--border-soft)]">
           <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
             <div>
@@ -99,7 +200,7 @@ export default function DashboardPage() {
                 <div>
                   <span className="text-xs text-[var(--accent-soft)] uppercase tracking-wider font-medium">Live Dashboard</span>
                   <div className="flex items-center gap-2 mt-1">
-                    <Clock className="h-3.5 w-3.5 text-green-400 animate-pulse" />
+                    <Clock className="h-3.5 w-3.5 text-[#FF8C42] animate-pulse" />
                     <span className="text-xs text-gray-400">Updated 3s ago</span>
                   </div>
                 </div>
@@ -113,10 +214,12 @@ export default function DashboardPage() {
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
-              
+              <div className="pill text-sm bg-[var(--accent-bg)] border-[var(--accent)] text-[var(--accent)]">
+                <Sparkles className="h-4 w-4" /> AI Active
+              </div>
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-green-500 rounded-full animate-ping"></div>
-                <span className="text-xs text-green-400 font-medium">Live</span>
+                <div className="w-3 h-3 bg-[#FF8C42] rounded-full animate-ping"></div>
+                <span className="text-xs text-[#FF8C42] font-medium">Live</span>
               </div>
             </div>
           </div>
@@ -127,8 +230,8 @@ export default function DashboardPage() {
 
         {/* Main Dashboard Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Enhanced Portfolio Allocation */}
-          <div className="lg:col-span-2 glass-card rounded-3xl p-8 pulse-glow hover:pulse-glow-hover">
+          {/* Portfolio Allocation */}
+          <div className="lg:col-span-2 glass-card rounded-3xl p-8">
             <div className="flex items-center justify-between mb-8">
               <div className="flex items-center gap-4">
                 <div className="w-16 h-16 bg-gradient-to-br from-[var(--accent)] to-[var(--accent-soft)] rounded-2xl flex items-center justify-center shadow-2xl">
@@ -147,8 +250,8 @@ export default function DashboardPage() {
           </div>
 
           {/* Live Market Signals */}
-          <div className="card rounded-3xl p-8 space-y-6">
-            <div className="flex items-center justify-between">
+          <div className="card rounded-3xl p-8">
+            <div className="flex items-center justify-between mb-6">
               <div>
                 <h3 className="text-xl font-bold text-white flex items-center gap-2">
                   <Activity className="h-5 w-5 text-[var(--accent)]" />
@@ -156,7 +259,7 @@ export default function DashboardPage() {
                 </h3>
                 <p className="text-sm text-gray-400 mt-1">Market sentiment • 5m delay</p>
               </div>
-              <div className="w-3 h-3 bg-green-500 rounded-full animate-ping"></div>
+              <div className="w-3 h-3 bg-[#FF8C42] rounded-full animate-ping"></div>
             </div>
 
             <div className="space-y-4">
@@ -169,13 +272,13 @@ export default function DashboardPage() {
                 <div key={idx} className="group flex items-center justify-between p-3 rounded-xl bg-[var(--surface-soft)] hover:bg-[var(--hover-bg)] transition-all">
                   <span className="text-sm font-medium text-gray-200">{signal.label}</span>
                   <div className="flex items-center gap-2">
-                    <span className={`font-bold text-lg ${signal.trend === 'up' ? 'text-green-400' : 'text-red-400'}`}>
+                    <span className={`font-bold text-lg ${signal.trend === 'up' ? 'text-[#FF8C42]' : 'text-[#FFBF6E]'}`}>
                       {signal.value}
                     </span>
                     {signal.trend === 'up' ? (
-                      <TrendingUp className="h-4 w-4 text-green-400" />
+                      <TrendingUp className="h-4 w-4 text-[#FF8C42]" />
                     ) : (
-                      <TrendingDown className="h-4 w-4 text-red-400" />
+                      <TrendingDown className="h-4 w-4 text-[#FFBF6E]" />
                     )}
                   </div>
                 </div>
@@ -194,11 +297,11 @@ export default function DashboardPage() {
                 <p className="text-gray-400 mt-1">YTD metrics • Risk-adjusted returns</p>
               </div>
               <div className="flex items-center gap-2 text-sm text-gray-400">
-                <span>1D</span>
+                <span className="hover:text-white cursor-pointer">1D</span>
                 <div className="w-2 h-2 bg-gray-500 rounded-full"></div>
-                <span>1M</span>
+                <span className="hover:text-white cursor-pointer">1M</span>
                 <div className="w-2 h-2 bg-[var(--accent)] rounded-full"></div>
-                <span>1Y</span>
+                <span className="hover:text-white cursor-pointer">1Y</span>
               </div>
             </div>
 
@@ -212,14 +315,14 @@ export default function DashboardPage() {
               ].map((metric, idx) => (
                 <div key={idx} className="flex items-center justify-between group">
                   <div className="flex items-center gap-3">
-                    <div className="w-2 h-2 rounded-full bg-gradient-to-r from-[var(--accent)] to-green-400"></div>
+                    <div className="w-2 h-2 rounded-full bg-gradient-to-r from-[var(--accent)] to-[#FF8C42]"></div>
                     <span className="font-medium text-gray-200">{metric.label}</span>
                   </div>
                   <div className="text-right">
-                    <div className={`text-xl font-black ${metric.value.startsWith('-') ? 'text-red-400' : 'text-green-400'}`}>
+                    <div className={`text-xl font-black ${metric.value.startsWith('-') ? 'text-[#FFBF6E]' : 'text-[#FF8C42]'}`}>
                       {metric.value}
                     </div>
-                    <div className={`text-xs ${metric.change.startsWith('-') ? 'text-red-400' : 'text-green-400'}`}>
+                    <div className={`text-xs ${metric.change.startsWith('-') ? 'text-[#FFBF6E]' : 'text-[#FF8C42]'}`}>
                       {metric.change}
                     </div>
                   </div>
@@ -241,7 +344,7 @@ export default function DashboardPage() {
                 return (
                   <div key={idx} className="group flex items-start gap-3 p-4 rounded-2xl bg-[var(--surface-soft)] hover:bg-[var(--hover-bg)] transition-all cursor-pointer">
                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                      activity.status === 'success' ? 'bg-green-500/20 border-2 border-green-500/30' :
+                      activity.status === 'success' ? 'bg-[#FF8C42]/20 border-2 border-[#FF8C42]/30' :
                       activity.status === 'active' ? 'bg-[var(--accent)]/20 border-2 border-[var(--accent)]/30' :
                       'bg-gray-500/20 border-2 border-gray-500/30'
                     }`}>
@@ -249,9 +352,8 @@ export default function DashboardPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-white text-sm">{activity.action}</p>
-                      <p className="text-xs text-gray-400 mt-1 truncate">{activity.time}</p>
+                      <p className="text-xs text-gray-400 mt-1">{activity.time}</p>
                     </div>
-                    <div className="w-2 h-2 bg-green-500 rounded-full animate-ping ml-2"></div>
                   </div>
                 )
               })}
@@ -259,8 +361,8 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Enhanced Holdings Table */}
-        <div className="xl:col-span-3 card rounded-3xl p-8">
+        {/* Holdings Table */}
+        <div className="card rounded-3xl p-8">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-8">
             <div>
               <h3 className="text-2xl font-bold text-white flex items-center gap-3">
@@ -270,7 +372,7 @@ export default function DashboardPage() {
               <p className="text-gray-400 mt-1">Largest positions by value • 12 tickers • ₹58.4L total</p>
             </div>
             <div className="flex items-center gap-3">
-              <button className="pill text-sm bg-[var(--success-bg)] text-[var(--success)] hover:bg-[var(--success)] hover:text-black transition-all">
+              <button className="pill text-sm bg-[var(--accent-bg)] text-[var(--accent)] hover:bg-[var(--accent)] hover:text-white transition-all">
                 Auto Rebalance
               </button>
               <div className="flex gap-2">
@@ -348,40 +450,16 @@ export default function DashboardPage() {
                 </span>
               </span>
               <div className="flex items-center gap-2 text-xs text-gray-400">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <div className="w-2 h-2 bg-[#FF8C42] rounded-full"></div>
                 <span>Real-time</span>
               </div>
             </div>
-            <button className="pill accent text-sm shadow-lg hover:shadow-[0_0_20px_rgba(255,69,0,0.4)] transition-all">
+            <button className="pill accent text-sm">
               <DollarSign className="h-4 w-4" /> Generate Report
             </button>
           </div>
         </div>
-
-        {/* Quick Actions Bar */}
-        <div className="glass-card rounded-3xl p-6 border border-[var(--border-soft)]">
-          <div className="flex items-center justify-between">
-            <h4 className="font-bold text-lg text-white flex items-center gap-3">
-              <Zap className="h-5 w-5 text-[var(--accent)]" />
-              Quick Actions
-            </h4>
-            <button className="text-sm text-[var(--accent)] font-medium hover:underline">View all →</button>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-            {[
-              { label: 'Rebalance', icon: Play, bg: 'bg-[var(--accent-bg)]', href: '/rebalance' },
-              { label: 'AI Signals', icon: Brain, bg: 'bg-[var(--success-bg)]', href: '/insights' },
-              { label: 'Backtest', icon: BarChart3, bg: 'bg-blue-500/10', href: '/backtesting' },
-              { label: 'Export', icon: DollarSign, bg: 'bg-purple-500/10', href: '/export' },
-            ].map((action, idx) => (
-              <Link key={idx} to={action.href} className={`group ${action.bg} p-4 rounded-2xl border border-transparent hover:border-[var(--accent)] transition-all hover:scale-105 hover:shadow-xl`}>
-                <action.icon className="h-6 w-6 text-gray-300 group-hover:text-[var(--accent)] transition-colors mx-auto mb-2" />
-                <span className="text-sm font-medium text-center block text-gray-200 group-hover:text-white">{action.label}</span>
-              </Link>
-            ))}
-          </div>
         </div>
       </div>
-    </div>
   )
 }

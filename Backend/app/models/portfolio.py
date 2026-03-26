@@ -3,6 +3,8 @@ from typing import List, Optional, TYPE_CHECKING
 from sqlalchemy import String, Float, ForeignKey, DateTime, Enum as SQLEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 import enum
+from sqlalchemy import Column, Integer, String, Float, JSON, ForeignKey
+from app.models.base import Base
 
 from app.models.base import Base
 
@@ -11,15 +13,15 @@ if TYPE_CHECKING:
 
 # --- Enums ---
 class AssetClass(str, enum.Enum):
-    EQUITY = "equity"
-    FIXED_INCOME = "fixed_income"
-    COMMODITY = "commodity"
-    CASH = "cash"
+    EQUITY = "EQUITY"
+    FIXED_INCOME = "FIXED_INCOME"
+    COMMODITY = "COMMODITY"
+    CASH = "CASH"
 
 class InstrumentType(str, enum.Enum):
-    ETF = "etf"
-    MUTUAL_FUND = "mutual_fund"
-    STOCK = "stock"
+    ETF = "ETF"
+    MUTUAL_FUND = "MUTUAL_FUND"
+    STOCK = "STOCK"
 
 # --- Models ---
 class Asset(Base):
@@ -27,53 +29,70 @@ class Asset(Base):
     __table_args__ = {'extend_existing': True}
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    ticker_or_isin: Mapped[str] = mapped_column(String, unique=True, index=True)
-    name: Mapped[str] = mapped_column(String)
-    asset_class: Mapped[AssetClass] = mapped_column(SQLEnum(AssetClass))
-    instrument_type: Mapped[InstrumentType] = mapped_column(SQLEnum(InstrumentType))
-    latest_nav: Mapped[Optional[float]] = mapped_column(Float)
+    ticker_or_isin: Mapped[str] = mapped_column(String, unique=True, index=True, nullable=False)
+    name: Mapped[str] = mapped_column(String, nullable=False)
+    asset_class: Mapped[AssetClass] = mapped_column(SQLEnum(AssetClass), nullable=False)
+    instrument_type: Mapped[InstrumentType] = mapped_column(SQLEnum(InstrumentType), nullable=False)
+    latest_nav: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
 
 
 class Portfolio(Base):
-    """The user's master portfolio record."""
     __tablename__ = "portfolios"
     __table_args__ = {'extend_existing': True}
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
     
-    # --- THIS LINE IS MISSING OR MISSPELLED IN YOUR CURRENT FILE ---
-    cash_balance: Mapped[float] = mapped_column(Float, default=0.0) 
-    # ---------------------------------------------------------------
-    
-    last_rebalanced_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    # Supabase expects DOUBLE PRECISION NOT NULL
+    cash_balance: Mapped[float] = mapped_column(Float, default=0.0, nullable=False) 
+    last_rebalanced_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
     
     user: Mapped["User"] = relationship("app.models.user.User", back_populates="portfolio")
     positions: Mapped[List["PortfolioPosition"]] = relationship(
-        "app.models.portfolio.PortfolioPosition", 
+        "PortfolioPosition", 
         back_populates="portfolio", 
         cascade="all, delete-orphan"
     )
 
 class PortfolioPosition(Base):
-    """Individual line items. Crucial for the 5/25 Rebalancing Strategy."""
     __tablename__ = "portfolio_positions"
     __table_args__ = {'extend_existing': True}
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    portfolio_id: Mapped[int] = mapped_column(ForeignKey("portfolios.id"))
-    asset_id: Mapped[int] = mapped_column(ForeignKey("assets.id"))
+    portfolio_id: Mapped[int] = mapped_column(ForeignKey("portfolios.id"), nullable=False)
+    asset_id: Mapped[int] = mapped_column(ForeignKey("assets.id"), nullable=False)
     
-    # --- ADDED TO MATCH YOUR SUPABASE SCREENSHOT ---
-    quantity: Mapped[float] = mapped_column(Float, default=0.0)
-    average_buy_price: Mapped[float] = mapped_column(Float, default=0.0)
-    target_weight: Mapped[float] = mapped_column(Float, default=0.0)
-    current_weight: Mapped[float] = mapped_column(Float, default=0.0) 
-    # -----------------------------------------------
+    # All of these must be NOT NULL according to your inspector
+    quantity: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
+    average_buy_price: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
+    target_weight: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
+    current_weight: Mapped[float] = mapped_column(Float, default=0.0, nullable=False) 
 
-    # Relationships using fully qualified module paths
-    portfolio: Mapped["Portfolio"] = relationship(
-        "app.models.portfolio.Portfolio", 
-        back_populates="positions"
-    )
-    asset: Mapped["Asset"] = relationship("app.models.portfolio.Asset")
+    portfolio: Mapped["Portfolio"] = relationship("Portfolio", back_populates="positions")
+    asset: Mapped["Asset"] = relationship("Asset")
+
+
+class PortfolioHistory(Base):
+    __tablename__ = "portfolio_history"
+    __table_args__ = {'extend_existing': True}
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    portfolio_id: Mapped[int] = mapped_column(ForeignKey("portfolios.id"), nullable=False)
+    
+    total_value: Mapped[float] = mapped_column(Float, nullable=False)
+    cash_flow: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
+    snapshot_date: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+
+    portfolio: Mapped["Portfolio"] = relationship("Portfolio")
+
+
+class RiskQuestion(Base):
+    __tablename__ = "risk_questions"
+    
+    # Use lowercase primary_key=True inside Column()
+    id = Column(Integer, primary_key=True, index=True)
+    question_text = Column(String, nullable=False)
+    category = Column(String) 
+    options = Column(JSON)    
+    weight = Column(Float, default=1.0)
+

@@ -1,25 +1,37 @@
-sqlalchemy 
-asyncpg 
-psycopg2-binary 
-pgvector 
-pydantic
-python-dotenv
+# Core Web & API
+fastapi
+uvicorn[standard]
+python-multipart
+
+# Database
+SQLAlchemy>=2.0.0
+asyncpg
 alembic
-langgraph
-langchain-core
+
+# Async & Tasks
+celery
+redis
+
+# AI & Agents
 langchain-google-genai
-PyPortfolioOpt 
-yfinance 
+langgraph
+google-genai
+python-dotenv
+
+# Quant & Finance
 pandas
-fastapi 
-uvicorn[standard] 
-pydantic-settings 
-requests
-numpy 
-pandas 
+numpy
 scipy
-feedparser
+cvxpy
+pyportfolioopt
+yfinance
+
+# Utils
+httpx
+pydantic-settings
 
 
-
-# alembic needs to be installed
+#Auth-Req
+python-multipart
+python-jose[cryptography]
+passlib[bcrypt]

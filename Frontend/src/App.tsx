@@ -1,3 +1,4 @@
+// src/App.tsx
 import React, { useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import Sidebar from './components/Sidebar'
@@ -12,6 +13,7 @@ export default function App({ children }: AppProps) {
   const location = useLocation()
 
   // Converted to lowercase to safely match the route
+  // Converted to lowercase to match the React Router paths safely
   const noLayoutRoutes = ['/signin', '/signup', '/privacy', '/terms']
   const hideLayout = noLayoutRoutes.includes(location.pathname.toLowerCase())
 

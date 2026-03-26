@@ -32,6 +32,8 @@ AsyncSessionLocal = async_sessionmaker(
 )
 
 # Async Dependency to inject DB sessions into our routes
+SessionLocal = AsyncSessionLocal
+
 async def get_db():
     async with AsyncSessionLocal() as db:
         try:
