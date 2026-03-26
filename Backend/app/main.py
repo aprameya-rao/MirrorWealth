@@ -1,16 +1,15 @@
 # app/main.py
+from dotenv import load_dotenv
+load_dotenv()
+
 from fastapi import FastAPI
-from app.api.v1 import users
+from app.api.v1.endpoints import portfolio # Import your new router
 
-app = FastAPI(
-    title="Personalized SIP Engine API",
-    description="Backend for AI-driven portfolio allocation and dynamic rebalancing.",
-    version="1.0.0"
-)
+app = FastAPI(title="MirrorWealth AI Backend")
 
-# Include the users router
-app.include_router(users.router, prefix="/api/v1/users", tags=["User Onboarding"])
+# Register the route
+app.include_router(portfolio.router, prefix="/api/v1/portfolio", tags=["Portfolio"])
 
-@app.get("/health")
-async def health_check():
-    return {"status": "System Online", "agents": "Standing by"}
+@app.get("/")
+def read_root():
+    return {"message": "MirrorWealth API is online"}
