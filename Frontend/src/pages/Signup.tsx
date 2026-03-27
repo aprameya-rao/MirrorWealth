@@ -1,4 +1,3 @@
-// src/pages/Signup.tsx
 import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Eye, EyeOff, ArrowRight, Sparkles, AlertCircle } from 'lucide-react'
@@ -37,6 +36,8 @@ export default function Signup() {
         email: email,
         password: password,
         full_name: fullName,
+        // Note: You might want to remove this hardcoded block later
+        // since the Questionnaire page now handles risk calibration
         risk_answers: {
           time_horizon_score: 4,
           liquidity_score: 3,
@@ -53,9 +54,9 @@ export default function Signup() {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
       })
 
-      // 3. Save the token and route to the dashboard
+      // 3. Save the token and route explicitly to the Questionnaire
       login(loginRes.data.access_token)
-      navigate('/dashboard')
+      navigate('/questionnaire')
       
     } catch (err: any) {
       console.error(err)
