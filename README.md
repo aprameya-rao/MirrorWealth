@@ -59,8 +59,6 @@ SECRET_KEY=your_secure_random_jwt_string
 # Redis Configuration
 # NOTE: Use 'redis://redis:6379/0' for Docker, or 'redis://localhost:6379/0' for Local Multi-Terminal
 REDIS_URL=redis://redis:6379/0
-CELERY_BROKER_URL=redis://redis:6379/0
-CELERY_RESULT_BACKEND=redis://redis:6379/0
 ```
 
 2. The Frontend handles environment variables via Vite. Ensure your `.env` (if applicable) or `docker-compose.yml` points to the backend:
