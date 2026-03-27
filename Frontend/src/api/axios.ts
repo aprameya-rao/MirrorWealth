@@ -29,8 +29,8 @@ export const ENDPOINTS = {
     LOGIN: '/auth/login',
   },
   RISK: {
-    GET_QUESTIONS: '/questions',
-    SUBMIT: '/submit',
+    GET_QUESTIONS: '/risk/questions',
+    SUBMIT: '/risk/submit',
   },
 }
 

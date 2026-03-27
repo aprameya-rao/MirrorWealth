@@ -2,24 +2,30 @@ import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ArrowRight, ArrowLeft, Activity, Shield, Flame, Sparkles } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
-import api from '../api/axios'
-import logo from './logo.png' // Adjust this path if your logo is elsewhere!
+import api, { ENDPOINTS } from '../api/axios' // Use your new endpoints
+import logo from './logo.png' 
 
-// Types matching your backend schemas
-interface RiskQuestion {
-  id: number;
+// --- UPDATED SCHEMAS TO MATCH FASTAPI ---
+interface QuestionOption {
   text: string;
-  weight: number;
+  score: number;
+}
+
+interface RiskQuestionDisplay {
+  id: number;
+  question_text: string;
+  category: string;
+  options: QuestionOption[];
 }
 
 interface RiskAssessmentResponse {
-  user_id: string | number;
+  user_id: number;
   rra_coefficient: number;
   risk_level: string;
 }
 
 export default function Questionnaire() {
-  const [questions, setQuestions] = useState<RiskQuestion[]>([])
+  const [questions, setQuestions] = useState<RiskQuestionDisplay[]>([])
   const [answers, setAnswers] = useState<Record<number, number>>({})
   const [currentStep, setCurrentStep] = useState(0)
   const [loading, setLoading] = useState(true)
@@ -27,20 +33,40 @@ export default function Questionnaire() {
   const [result, setResult] = useState<RiskAssessmentResponse | null>(null)
   const [error, setError] = useState('')
   
-  const { user } = useAuth()
+  // CRITICAL: Bring in refreshUser so the gatekeeper lets them in after completion!
+  const { user, refreshUser } = useAuth()
   const navigate = useNavigate()
 
   useEffect(() => {
     const fetchQuestions = async () => {
-      // Fallback data in case the DB is empty or backend is unreachable
-      const fallbackData = [
-        { id: 1, text: "How would you react if your portfolio lost 20% of its value in a month?", weight: 1.5 },
-        { id: 2, text: "What is your primary goal for this investment portfolio?", weight: 1.2 },
-        { id: 3, text: "When do you expect to start withdrawing significant funds?", weight: 1.0 },
+      // Fallback data mapping to your exact backend schema
+      const fallbackData: RiskQuestionDisplay[] = [
+        { 
+          id: 1, 
+          question_text: "How would you react if your portfolio lost 20% of its value in a month?", 
+          category: "Tolerance",
+          options: [
+            { text: "Sell everything immediately to prevent further loss.", score: 1 },
+            { text: "Sell some assets to reduce exposure.", score: 4 },
+            { text: "Hold and wait for the market to recover.", score: 7 },
+            { text: "Buy more assets while they are cheap.", score: 10 }
+          ]
+        },
+        { 
+          id: 2, 
+          question_text: "What is your primary goal for this investment portfolio?", 
+          category: "Goals",
+          options: [
+            { text: "Strict capital preservation.", score: 1 },
+            { text: "Steady, reliable income.", score: 4 },
+            { text: "Balanced growth and income.", score: 7 },
+            { text: "Maximum long-term capital appreciation.", score: 10 }
+          ]
+        }
       ]
 
       try {
-        const response = await api.get('/questions')
+        const response = await api.get(ENDPOINTS.RISK.GET_QUESTIONS)
         const data = response.data && response.data.length > 0 ? response.data : fallbackData
         setQuestions(data)
       } catch (err) {
@@ -60,7 +86,6 @@ export default function Questionnaire() {
     
     setAnswers(prev => ({ ...prev, [currentQ.id]: score }))
     
-    // Auto-advance after a short delay for smooth UX
     setTimeout(() => {
       if (currentStep < questions.length - 1) {
         setCurrentStep(prev => prev + 1)
@@ -72,8 +97,9 @@ export default function Questionnaire() {
     setSubmitting(true)
     setError('')
     
+    // Payload matching RiskAssessmentRequest
     const payload = {
-      user_id: user?.id || 1, // Fallback to 1 if auth isn't fully wired
+      user_id: Number(user?.id) || 1, // Ensure it parses as an int for FastAPI
       answers: Object.entries(answers).map(([q_id, score]) => ({
         question_id: parseInt(q_id),
         selected_score: score
@@ -81,8 +107,12 @@ export default function Questionnaire() {
     }
 
     try {
-      const response = await api.post('/submit', payload)
+      const response = await api.post(ENDPOINTS.RISK.SUBMIT, payload)
       setResult(response.data)
+      
+      // Update global context so the ProtectedRoute knows they now have an RRA!
+      if (refreshUser) await refreshUser()
+      
     } catch (err: any) {
       console.error(err)
       setError(err.response?.data?.detail || 'Failed to submit assessment.')
@@ -90,14 +120,6 @@ export default function Questionnaire() {
       setSubmitting(false)
     }
   }
-
-  // Pre-defined score options for the UI
-  const scoreOptions = [
-    { value: 1, label: "Highly Averse", desc: "Protect my capital at all costs." },
-    { value: 4, label: "Cautious", desc: "Prefer stability over high returns." },
-    { value: 7, label: "Balanced", desc: "Willing to take calculated risks." },
-    { value: 10, label: "Aggressive", desc: "Maximize returns, accept high volatility." }
-  ]
 
   const progressPercentage = questions.length > 0 
     ? ((Object.keys(answers).length) / questions.length) * 100 
@@ -233,28 +255,31 @@ export default function Questionnaire() {
                   </div>
                 )}
 
-                <div className="mb-8">
-                  <h3 className="text-2xl font-bold leading-tight mb-2">
-                    {questions[currentStep]?.text}
+                <div className="mb-8 flex flex-col gap-2">
+                  <span className="text-xs text-[#FF4500] uppercase tracking-widest font-bold">
+                    {questions[currentStep]?.category}
+                  </span>
+                  <h3 className="text-2xl font-bold leading-tight">
+                    {questions[currentStep]?.question_text}
                   </h3>
                 </div>
 
                 <div className="space-y-3 mb-8">
-                  {scoreOptions.map((opt) => {
+                  {/* DYNAMIC OPTIONS MAPPING */}
+                  {questions[currentStep]?.options.map((opt, idx) => {
                     const currentId = questions[currentStep]?.id;
-                    const isSelected = currentId ? answers[currentId] === opt.value : false;
+                    const isSelected = currentId ? answers[currentId] === opt.score : false;
                     
                     return (
                       <button
-                        key={opt.value}
-                        onClick={() => handleSelectScore(opt.value)}
+                        key={idx}
+                        onClick={() => handleSelectScore(opt.score)}
                         className={`w-full text-left p-4 rounded-2xl option-card flex items-center justify-between group ${isSelected ? 'selected' : ''}`}
                       >
                         <div>
-                          <p className="font-semibold text-foreground">{opt.label}</p>
-                          <p className="text-sm text-muted-foreground mt-1">{opt.desc}</p>
+                          <p className="font-medium text-foreground">{opt.text}</p>
                         </div>
-                        <div className={`h-5 w-5 rounded-full border flex items-center justify-center transition-colors ${isSelected ? 'border-[#FF4500] bg-[#FF4500]' : 'border-muted-foreground group-hover:border-[#FF4500]'}`}>
+                        <div className={`h-5 w-5 rounded-full border flex items-center justify-center transition-colors flex-shrink-0 ml-4 ${isSelected ? 'border-[#FF4500] bg-[#FF4500]' : 'border-muted-foreground group-hover:border-[#FF4500]'}`}>
                           {isSelected && <div className="h-2 w-2 bg-white rounded-full" />}
                         </div>
                       </button>
