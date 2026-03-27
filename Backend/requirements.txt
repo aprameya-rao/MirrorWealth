@@ -31,6 +31,7 @@ bt
 httpx
 pydantic-settings
 fastapi_utils
+typing_inspect
 
 #Auth-Req
 python-multipart
