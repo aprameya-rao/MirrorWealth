@@ -30,7 +30,7 @@ bt
 # Utils
 httpx
 pydantic-settings
-
+fastapi_utils
 
 #Auth-Req
 python-multipart
