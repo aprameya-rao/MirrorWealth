@@ -37,18 +37,25 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 
           {/* Protected Routes */}
           <Route 
-  path="/dashboard" 
-  element={
-    <ProtectedRoute>
-      <App>
-        <DashboardPage />
-      </App>
-    </ProtectedRoute>
-  } 
-/>
+            path="/dashboard" 
+            element={
+              <ProtectedRoute>
+                <App>
+                  <DashboardPage />
+                </App>
+              </ProtectedRoute>
+            } 
+          />
           
-          {/* Added Questionnaire Route */}
-          <Route path="/questionnaire" element={<QuestionnairePage />} />
+          {/* ADDED ProtectedRoute wrapper here! */}
+          <Route 
+            path="/questionnaire" 
+            element={
+              <ProtectedRoute>
+                <QuestionnairePage />
+              </ProtectedRoute>
+            } 
+          />
           
           <Route path="/allocation" element={<ProtectedRoute><App><AllocationPage /></App></ProtectedRoute>} />
           <Route path="/analytics" element={<ProtectedRoute><App><AnalyticsPage /></App></ProtectedRoute>} />
