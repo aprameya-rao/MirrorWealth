@@ -5,7 +5,7 @@ from typing import Dict, List
 # 1. The Request Model
 class PortfolioRequest(BaseModel):
     # We only need the user_id now; the backend securely fetches the rest!
-    user_id: int 
+    pass
 
 # 2. Sub-Models for the Response
 class PortfolioSummary(BaseModel):
@@ -35,5 +35,4 @@ class AnswerSubmission(BaseModel):
     selected_score: int
 
 class RiskAssessmentRequest(BaseModel):
-    user_id: int
     answers: List[AnswerSubmission]

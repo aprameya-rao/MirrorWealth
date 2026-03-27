@@ -1,91 +1,76 @@
-# app/api/v1/endpoints/auth.py
-from datetime import timedelta
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.future import select
-from app.core.db import get_db
-from app.models.user import User, RiskProfile
-from app.schemas.user import UserCreate, UserResponse 
+from sqlalchemy import select
+from pydantic import BaseModel, EmailStr
 
-from app.core.security import (
-    verify_password, 
-    get_password_hash, 
-    create_access_token, 
-    ACCESS_TOKEN_EXPIRE_MINUTES
-)
+from app.core.db import get_db
+from app.models import User
+from app.core.security import verify_password, get_password_hash, create_access_token
+from app.api.deps import get_current_user  # ✅ Add this line!
 
 router = APIRouter()
 
-@router.post("/signup", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
-async def create_user(user_in: UserCreate, db: AsyncSession = Depends(get_db)):
-    # 1. ASYNC: Check if email exists
-    result = await db.execute(select(User).where(User.email == user_in.email))
-    existing_user = result.scalars().first()
-    
-    if existing_user:
-        raise HTTPException(status_code=400, detail="Email already registered")
-    
-    # 2. Hash password
-    hashed_pw = get_password_hash(user_in.password)
-    
-    # 3. Calculate baseline RRA
-    total_score = (
-        user_in.risk_answers.time_horizon_score + 
-        user_in.risk_answers.liquidity_score + 
-        user_in.risk_answers.loss_tolerance_score
-    )
-    calculated_rra = max(2.0, 12.0 - (total_score * 0.66))
+# --- Temporary Schemas (Move to app/schemas/user.py later) ---
+class UserCreate(BaseModel):
+    email: EmailStr
+    full_name: str
+    password: str
 
-    # 4. Save User to DB
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+# -------------------------------------------------------------
+
+@router.post("/register", response_model=Token)
+async def register(user_in: UserCreate, db: AsyncSession = Depends(get_db)):
+    """Creates a new user and returns a JWT token immediately."""
+    # Check if user exists
+    stmt = select(User).where(User.email == user_in.email)
+    result = await db.execute(stmt)
+    if result.scalar_one_or_none():
+        raise HTTPException(status_code=400, detail="Email already registered")
+        
+    # Hash password and save
+    hashed_pwd = get_password_hash(user_in.password)
     new_user = User(
-        email=user_in.email,
-        hashed_password=hashed_pw,
-        full_name=user_in.full_name,
-        rra_coefficient=calculated_rra
+        email=user_in.email, 
+        full_name=user_in.full_name, 
+        hashed_password=hashed_pwd
     )
     db.add(new_user)
-    await db.commit() 
-    await db.refresh(new_user) 
+    await db.commit()
+    await db.refresh(new_user)
     
-    # 5. Save Risk Profile to DB
-    new_risk_profile = RiskProfile(
-        user_id=new_user.id,
-        time_horizon_score=user_in.risk_answers.time_horizon_score,
-        liquidity_score=user_in.risk_answers.liquidity_score,
-        loss_tolerance_score=user_in.risk_answers.loss_tolerance_score
-    )
-    db.add(new_risk_profile)
-    await db.commit() 
-
-    return new_user
+    # Generate token
+    token = create_access_token(subject=new_user.id)
+    return {"access_token": token, "token_type": "bearer"}
 
 
-@router.post("/token")
-async def login_for_access_token(
-    form_data: OAuth2PasswordRequestForm = Depends(),
-    db: AsyncSession = Depends(get_db) 
+@router.post("/login", response_model=Token)
+async def login(
+    form_data: OAuth2PasswordRequestForm = Depends(), 
+    db: AsyncSession = Depends(get_db)
 ):
-    # 1. ASYNC: Find user
-    result = await db.execute(select(User).where(User.email == form_data.username))
-    user = result.scalars().first()
-
-    # 2. Verify password
+    """Authenticates a user and returns a JWT token."""
+    # Note: OAuth2PasswordRequestForm expects 'username' and 'password'
+    # We will treat the 'username' field as the user's email.
+    stmt = select(User).where(User.email == form_data.username)
+    result = await db.execute(stmt)
+    user = result.scalar_one_or_none()
+    
     if not user or not verify_password(form_data.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
+        
+    token = create_access_token(subject=user.id)
+    return {"access_token": token, "token_type": "bearer"}
 
-    # 3. Generate Access Token
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(
-        data={"sub": user.email}, 
-        expires_delta=access_token_expires
-    )
 
-    return {
-        "access_token": access_token, 
-        "token_type": "bearer"
-    }
+@router.get("/me")
+async def read_users_me(current_user: User = Depends(get_current_user)):
+    """Test endpoint to see who is currently logged in."""
+    return {"id": current_user.id, "email": current_user.email, "name": current_user.full_name}

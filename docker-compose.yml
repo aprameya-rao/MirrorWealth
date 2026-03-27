@@ -1,25 +1,62 @@
-services:
-  # The Primary Database (PostgreSQL + pgvector)
-  db:
-    image: pgvector/pgvector:pg16
-    container_name: sip_postgres
-    restart: always
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: sip_db
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
+version: '3.8'
 
-  # The Message Broker for Celery
+services:
+  # 1. The Message Broker
   redis:
     image: redis:7-alpine
-    container_name: sip_redis
-    restart: always
     ports:
-      - "6380:6379" # <--- CHANGED THIS: Maps host port 6380 to container port 6379
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
 
-volumes:
-  postgres_data:
+  # 2. The API Server
+  api:
+    build:
+      context: ./Backend
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./Backend/.env
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  # 3. The Celery Worker (AI & Quant Math)
+  worker:
+    build:
+      context: ./Backend
+    command: celery -A app.core.celery_app worker --loglevel=info
+    env_file:
+      - ./Backend/.env
+    depends_on:
+      redis:
+        condition: service_healthy
+      api:
+        condition: service_started
+
+  # 4. The Celery Beat (Drift Monitor Scheduler)
+  beat:
+    build:
+      context: ./Backend
+    command: celery -A app.core.celery_app beat --loglevel=info
+    env_file:
+      - ./Backend/.env
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  # 5. The React Vite Frontend
+  frontend:
+    build:
+      context: ./Frontend
+    ports:
+      - "5173:5173"
+    environment:
+      # This connects the React container to your API container seamlessly
+      - VITE_API_URL=http://localhost:8000 
+    depends_on:
+      - api
