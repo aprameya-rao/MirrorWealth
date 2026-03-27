@@ -35,16 +35,16 @@ export default function Signin() {
     formData.append('password', password);
 
     const response = await api.post(ENDPOINTS.AUTH.LOGIN, formData, {
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-    });
+  headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+});
 
-    const token = response.data.access_token;
+const token = response.data.access_token;
+const user = response.data.user;
 
-    await login(token);
+login(token, user);
 
-    // 🔥 HARD redirect (guaranteed)
-    console.log("Redirection")
-    window.location.href = '/dashboard';
+// redirect
+window.location.href = '/dashboard';
 
   } catch (err: any) {
     console.error(err);

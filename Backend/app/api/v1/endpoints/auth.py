@@ -47,29 +47,46 @@ async def register(user_in: UserCreate, db: AsyncSession = Depends(get_db)):
     return {"access_token": token, "token_type": "bearer"}
 
 
-@router.post("/login", response_model=Token)
+    
+@router.post("/login")
 async def login(
-    form_data: OAuth2PasswordRequestForm = Depends(), 
+    form_data: OAuth2PasswordRequestForm = Depends(),
     db: AsyncSession = Depends(get_db)
 ):
-    """Authenticates a user and returns a JWT token."""
-    # Note: OAuth2PasswordRequestForm expects 'username' and 'password'
-    # We will treat the 'username' field as the user's email.
+    # 🔍 1. Fetch user from DB (async)
     stmt = select(User).where(User.email == form_data.username)
     result = await db.execute(stmt)
     user = result.scalar_one_or_none()
-    
-    if not user or not verify_password(form_data.password, user.hashed_password):
+
+    # ❌ If user doesn't exist
+    if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password",
-            headers={"WWW-Authenticate": "Bearer"},
+            detail="Invalid email or password"
         )
-        
-    token = create_access_token(subject=user.id)
-    return {"access_token": token, "token_type": "bearer"}
 
+    # 🔐 2. Verify password
+    if not verify_password(form_data.password, user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid email or password"
+        )
 
-@router.get("/auth/me")
+    # 🔑 3. Create JWT (use SAME style as your register)
+    access_token = create_access_token(subject=user.id)
+
+    # 📦 4. Return token + user (NO /me needed anymore)
+    return {
+    "access_token": access_token,
+    "token_type": "bearer",
+    "user": {
+        "id": user.id,
+        "email": user.email,
+        "full_name": user.full_name,
+        "rra_coefficient": user.rra_coefficient
+    }
+}
+
+@router.get("/me")
 async def get_current_user(current_user: User= Depends(get_current_user)):
     return current_user

@@ -14,25 +14,41 @@ interface AppProps {
  * No user / RRA logic
  */
 const FlowController = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated, loading } = useAuth()
-  const location = useLocation()
+  const { isAuthenticated, user, loading } = useAuth();
+  const location = useLocation();
 
-  // Prevent flicker
+  // Optional loader (safe to keep)
   if (loading) {
     return (
       <div className="h-screen w-full bg-black flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-[var(--accent)]"></div>
       </div>
-    )
+    );
   }
 
-  // 🔥 Only check auth
+  // 🔥 Step 1: must be logged in
   if (!isAuthenticated) {
-    return <Navigate to="/signin" state={{ from: location }} replace />
+    return <Navigate to="/signin" state={{ from: location }} replace />;
   }
 
-  return <>{children}</>
-}
+  // 🔥 Step 2: user must exist (now it WILL exist)
+  if (!user) {
+    return <Navigate to="/signin" replace />;
+  }
+
+  // 🔥 Step 3: optional — questionnaire logic (now safe)
+  const hasNoRRA = !user.rra_coefficient || user.rra_coefficient === 0;
+
+  if (hasNoRRA && location.pathname !== '/questionnaire') {
+    return <Navigate to="/questionnaire" replace />;
+  }
+
+  if (!hasNoRRA && location.pathname === '/questionnaire') {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  return <>{children}</>;
+};
 
 export default function App({ children }: AppProps) {
   const [sidebarOpen, setSidebarOpen] = useState(true)

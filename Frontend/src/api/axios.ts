@@ -1,19 +1,17 @@
 import axios from 'axios'
 
-// Base API instance
+// Create the base instance
 const api = axios.create({
-  baseURL: `${import.meta.env.VITE_API_BASE_URL}/api/v1`,
+  baseURL: import.meta.env.VITE_API_BASE_URL, // Ensure your .env has VITE_API_BASE_URL=http://localhost:8000
   headers: {
     'Content-Type': 'application/json',
   },
 })
 
-// Automatically attach the JWT token to every request
+// Automatically attach the token to every request
 api.interceptors.request.use(
   (config) => {
-    // Note: Make sure this matches what you use in localStorage! 
-    // If AuthContext uses 'access_token', change this to localStorage.getItem('access_token')
-    const token = localStorage.getItem('token') 
+    const token = localStorage.getItem('access_token')
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`
     }
@@ -22,16 +20,23 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 )
 
-// ---- API ENDPOINTS (so you stop hardcoding strings everywhere) ----
+// Centralized Endpoints Dictionary
 export const ENDPOINTS = {
   AUTH: {
-    REGISTER: '/auth/register',
-    LOGIN: '/auth/login',
+    REGISTER: '/api/v1/auth/register',
+    LOGIN: '/api/v1/auth/login',
+    ME: '/api/v1/auth/me',
   },
   RISK: {
-    GET_QUESTIONS: '/questions',
-    SUBMIT: '/submit',
+    GET_QUESTIONS: '/risk/questions',
+    SUBMIT: '/risk/submit',
   },
+  PORTFOLIO: {
+    GET_PORTFOLIO: '/api/v1/portfolio', 
+    RECOMMEND_ASYNC: '/api/v1/portfolio/recommend/async',
+    TASK_STATUS: (taskId: string) => `/api/v1/portfolio/task/status/${taskId}`,
+    EXECUTE: '/api/v1/portfolio/execute'
+  }
 }
 
 export default api
