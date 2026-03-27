@@ -1,8 +1,9 @@
 // src/api/axios.ts
 import axios from 'axios'
 
+// Base API instance
 const api = axios.create({
-  baseURL: 'http://localhost:8000/api/v1',
+  baseURL: `${import.meta.env.VITE_API_BASE_URL}/api/v1`,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -19,5 +20,13 @@ api.interceptors.request.use(
   },
   (error) => Promise.reject(error)
 )
+
+// ---- API ENDPOINTS (so you stop hardcoding strings everywhere) ----
+export const ENDPOINTS = {
+  RISK: {
+    GET_QUESTIONS: '/questions',
+    SUBMIT: '/submit',
+  },
+}
 
 export default api
