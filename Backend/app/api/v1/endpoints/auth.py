@@ -70,7 +70,6 @@ async def login(
     return {"access_token": token, "token_type": "bearer"}
 
 
-@router.get("/me")
-async def read_users_me(current_user: User = Depends(get_current_user)):
-    """Test endpoint to see who is currently logged in."""
-    return {"id": current_user.id, "email": current_user.email, "name": current_user.full_name}
+@router.get("/auth/me")
+async def get_current_user(current_user: User= Depends(get_current_user)):
+    return current_user

@@ -1,4 +1,3 @@
-// src/api/axios.ts
 import axios from 'axios'
 
 // Base API instance
@@ -12,7 +11,9 @@ const api = axios.create({
 // Automatically attach the JWT token to every request
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token')
+    // Note: Make sure this matches what you use in localStorage! 
+    // If AuthContext uses 'access_token', change this to localStorage.getItem('access_token')
+    const token = localStorage.getItem('token') 
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`
     }
@@ -23,6 +24,10 @@ api.interceptors.request.use(
 
 // ---- API ENDPOINTS (so you stop hardcoding strings everywhere) ----
 export const ENDPOINTS = {
+  AUTH: {
+    REGISTER: '/auth/register',
+    LOGIN: '/auth/login',
+  },
   RISK: {
     GET_QUESTIONS: '/questions',
     SUBMIT: '/submit',
