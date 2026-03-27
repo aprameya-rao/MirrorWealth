@@ -25,6 +25,7 @@ scipy
 cvxpy
 pyportfolioopt
 yfinance
+bt
 
 # Utils
 httpx
