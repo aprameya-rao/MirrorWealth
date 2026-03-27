@@ -4,7 +4,8 @@ from sqlalchemy import select
 from typing import List
 
 from app.core.db import get_db
-from app.models import RiskProfile, RiskQuestion
+from app.models import RiskProfile, RiskQuestion,User
+from app.api.deps import get_current_user
 from app.schemas.risk import RiskAssessmentRequest, RiskAssessmentResponse, RiskQuestionDisplay
 
 router = APIRouter()
@@ -19,7 +20,8 @@ async def get_questions(db: AsyncSession = Depends(get_db)):
 @router.post("/submit", response_model=RiskAssessmentResponse)
 async def submit_risk_assessment(
     payload: RiskAssessmentRequest, 
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
     """
     The Scoring Matrix Engine:

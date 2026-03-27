@@ -18,6 +18,7 @@ from app.quant.rebalance import calculate_orders
 from app.utils.market_data import fetch_live_prices
 from celery.result import AsyncResult
 from app.worker.tasks import background_portfolio_generation
+from app.api.deps import get_current_user
 
 router = APIRouter()
 
@@ -43,13 +44,14 @@ class DashboardResponse(BaseModel):
 @router.post("/recommend", response_model=PortfolioResponse) 
 async def get_portfolio_recommendation(
     request: PortfolioRequest, 
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
     try:
         # 1. Fetch User Data (With Portfolio, Positions, AND Assets attached)
         query = (
             select(User)
-            .where(User.id == request.user_id)
+            .where(User.id == current_user.id)
             .options(
                 selectinload(User.portfolio)
                 .selectinload(Portfolio.positions)
@@ -193,10 +195,11 @@ async def get_portfolio_recommendation(
 async def confirm_trade_execution(
     request: PortfolioRequest, # Using same schema for now
     action_plan: dict,         # The JSON output from /recommend
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
     try:
-        success = await execute_trade_plan(db, request.user_id, action_plan)
+        success = await execute_trade_plan(db, current_user.id, action_plan)
         return {"status": "success", "message": "Portfolio updated successfully"}
     except Exception as e:
         await db.rollback()
@@ -314,10 +317,11 @@ async def get_portfolio_dashboard(
 @router.post("/recommend/async") 
 async def get_portfolio_recommendation_async(
     request: PortfolioRequest, 
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
     # 1. Fetch User and Assets (Fast DB operations)
-    query = select(User).where(User.id == request.user_id).options(
+    query = select(User).where(User.id == current_user.id).options(
         selectinload(User.portfolio).selectinload(Portfolio.positions).selectinload(PortfolioPosition.asset) 
     )
     user = (await db.execute(query)).scalar_one_or_none()
@@ -344,7 +348,7 @@ async def get_portfolio_recommendation_async(
             holdings_summary_list.append(f"{pos.quantity} units of {ticker}")
 
     payload = {
-        "user_id": request.user_id,
+        "user_id": current_user.id,
         "rra_score": user.rra_coefficient,
         "cash_available": user.portfolio.cash_balance,
         "holdings_summary": ", ".join(holdings_summary_list) or "No existing holdings.",

@@ -9,7 +9,7 @@ load_dotenv()
 from app.core.db import engine
 from app.models.base import Base # Import your declarative base
 from app.models import user      # Import models to ensure they are registered before create_all
-from app.api.v1.endpoints import auth
+from app.api.v1.endpoints import auth,risk,portfolio
 
 # Async lifespan context to create tables on startup
 @asynccontextmanager
@@ -98,6 +98,7 @@ async def record_daily_snapshots():
 # Register the route
 app.include_router(portfolio.router, prefix="/api/v1/portfolio", tags=["Portfolio"])
 app.include_router(risk.router, prefix="/risk", tags=["Risk"])
+app.include_router(auth.router, prefix="/auth", tags=["Authentication"])
 
 # Register your authentication routes
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["auth"])

@@ -16,7 +16,7 @@ class User(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     email: Mapped[str] = mapped_column(String, unique=True, index=True)
-    hashed_password: Mapped[str] = mapped_column(String)
+    hashed_password = Column(String, nullable=False)
     full_name: Mapped[str] = mapped_column(String)
     
     # Mathematical output from your Psychometric Scoring Algorithm
@@ -31,6 +31,7 @@ class User(Base):
         uselist=False
     )
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    risk_profile = relationship("RiskProfile", back_populates="user", uselist=False)
 
 
 class RiskProfile(Base):
@@ -40,3 +41,4 @@ class RiskProfile(Base):
     total_risk_score = Column(Integer, default=0)
     rra_coefficient = Column(Float, default=4.5)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    user = relationship("User", back_populates="risk_profile")
