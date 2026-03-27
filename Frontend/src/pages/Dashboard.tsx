@@ -80,7 +80,7 @@ export default function DashboardPage() {
       const pollInterval = setInterval(async () => {
         try {
           // Check the status
-          const statusRes = await api.get(ENDPOINTS.PORTFOLIO.TASK_STATUS(taskId),{});
+          const statusRes = await api.get(ENDPOINTS.PORTFOLIO.TASK_STATUS(taskId));
           const statusData = statusRes.data;
 
           if (statusData.status === 'success') {
@@ -113,19 +113,28 @@ export default function DashboardPage() {
     }
   };
   // --- EXECUTE TRADE LOGIC ---
+  // --- EXECUTE TRADE LOGIC ---
   const handleExecute = async () => {
     setAiStatus('executing');
     try {
-      // Pass the recommendations to your execute endpoint
-      await api.post(ENDPOINTS.PORTFOLIO.EXECUTE, { recommendations: recommendationData.recommendations });
+      // 1. Format the payload exactly how FastAPI expects it
+      const executePayload = {
+        request: {}, // Pass an empty object as requested by the schema
+        action_plan: recommendationData.recommendations // Map the trades to 'action_plan'
+      };
+
+      // 2. Send it to the backend
+      await api.post(ENDPOINTS.PORTFOLIO.EXECUTE, executePayload);
       
       alert("Trades Executed Successfully! Neural drift corrected.");
       setIsModalOpen(false); // Close modal on success
       
-    } catch (err) {
-      console.error(err);
-      alert("Failed to execute trades.");
-      setAiStatus('success'); // Revert back to success state so they can try again if it was a network blip
+    } catch (err: any) {
+      console.error("Execution Error:", err);
+      // Helpful to log the exact backend error if it still fails
+      const backendError = err.response?.data?.detail || "Failed to execute trades.";
+      alert(`Error: ${JSON.stringify(backendError)}`);
+      setAiStatus('success'); // Revert back to success state so they can try again
     }
   };
 
