@@ -36,7 +36,16 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
           <Route path="/terms" element={<App><TermsPage /></App>} />
 
           {/* Protected Routes */}
-          <Route path="/dashboard" element={<App><DashboardPage /></App>} />
+          <Route 
+  path="/dashboard" 
+  element={
+    <ProtectedRoute>
+      <App>
+        <DashboardPage />
+      </App>
+    </ProtectedRoute>
+  } 
+/>
           
           {/* Added Questionnaire Route */}
           <Route path="/questionnaire" element={<QuestionnairePage />} />

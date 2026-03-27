@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Eye, EyeOff, ArrowRight, Sparkles, AlertCircle } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
-import api from '../api/axios'
+import api, { ENDPOINTS } from '../api/axios'
 import logo from './logo.png' // Adjust this path if your logo is elsewhere!
 
 export default function Signup() {
@@ -31,31 +31,24 @@ export default function Signup() {
     setLoading(true)
     
     try {
-      // 1. Create the user via your FastAPI backend
-      await api.post('/auth/signup', {
+      // 1. Create the user matching the FastAPI UserCreate schema
+      await api.post(ENDPOINTS.AUTH.REGISTER, {
         email: email,
-        password: password,
         full_name: fullName,
-        // Note: You might want to remove this hardcoded block later
-        // since the Questionnaire page now handles risk calibration
-        risk_answers: {
-          time_horizon_score: 4,
-          liquidity_score: 3,
-          loss_tolerance_score: 5
-        }
+        password: password
       })
 
       // 2. Automatically log them in to get the JWT token
       const formData = new URLSearchParams()
-      formData.append('username', email) // FastAPI OAuth2 strictly requires 'username'
+      formData.append('username', email) // OAuth2 strictly requires 'username'
       formData.append('password', password)
 
-      const loginRes = await api.post('/auth/token', formData, {
+      const loginRes = await api.post(ENDPOINTS.AUTH.LOGIN, formData, {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
       })
 
       // 3. Save the token and route explicitly to the Questionnaire
-      login(loginRes.data.access_token)
+      await login(loginRes.data.access_token)
       navigate('/questionnaire')
       
     } catch (err: any) {

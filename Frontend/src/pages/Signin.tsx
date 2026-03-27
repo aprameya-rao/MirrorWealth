@@ -1,9 +1,8 @@
-// src/pages/Signin.tsx
 import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Eye, EyeOff, ArrowRight, Sparkles, AlertCircle } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
-import api from '../api/axios'
+import api, { ENDPOINTS } from '../api/axios' // Updated import
 import logo from './logo.png' // Adjust this path if your logo is elsewhere!
 
 export default function Signin() {
@@ -20,34 +19,40 @@ export default function Signin() {
   useEffect(() => { setMounted(true) }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError('')
-    
-    if (!email || !password) { 
-      setError('Please fill in all fields.')
-      return 
-    }
-    
-    setLoading(true)
-    
-    try {
-      const formData = new URLSearchParams()
-      formData.append('username', email) // FastAPI requires 'username'
-      formData.append('password', password)
+  e.preventDefault();
+  setError('');
 
-      const response = await api.post('/auth/token', formData, {
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-      })
-
-      login(response.data.access_token)
-      navigate('/dashboard')
-    } catch (err: any) {
-      console.error(err)
-      setError(err.response?.data?.detail || 'Invalid email or password.')
-    } finally {
-      setLoading(false)
-    }
+  if (!email || !password) {
+    setError('Please fill in all fields.');
+    return;
   }
+
+  setLoading(true);
+
+  try {
+    const formData = new URLSearchParams();
+    formData.append('username', email);
+    formData.append('password', password);
+
+    const response = await api.post(ENDPOINTS.AUTH.LOGIN, formData, {
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+    });
+
+    const token = response.data.access_token;
+
+    await login(token);
+
+    // 🔥 HARD redirect (guaranteed)
+    console.log("Redirection")
+    window.location.href = '/dashboard';
+
+  } catch (err: any) {
+    console.error(err);
+    setError(err.response?.data?.detail || 'Invalid email or password.');
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col overflow-hidden">
