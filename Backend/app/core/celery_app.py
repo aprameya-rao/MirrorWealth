@@ -36,11 +36,11 @@ celery_app.conf.beat_schedule = {
     'monitor-portfolio-drift-every-minute': {
         'task': 'app.worker.tasks.daily_drift_monitor', # The name of the task we are about to write
         # Run every 60 seconds for testing!
-        'schedule': 10.0, 
+        # 'schedule': 10.0, 
         
         # PRO-TIP: When you are ready for production, comment out the line above 
         # and uncomment the line below to run it only after Indian markets close:
-        # 'schedule': crontab(hour=15, minute=45, day_of_week='mon-fri'),
+        'schedule': crontab(hour=15, minute=45, day_of_week='mon-fri'),
     },
 }
 

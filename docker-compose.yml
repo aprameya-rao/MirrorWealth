@@ -54,7 +54,7 @@ services:
     build:
       context: ./Frontend
     ports:
-      - "5173:5173"
+      - "3000:3000"
     environment:
       # This connects the React container to your API container seamlessly
       - VITE_API_URL=http://localhost:8000 
